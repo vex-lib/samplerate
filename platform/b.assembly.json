@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 2,
+  "application": {
+    "id": "org.vexgraph.samplerate.platform",
+    "name": "platform",
+    "displayName": "platform",
+    "version": "0.1.0",
+    "type": "lib",
+    "authors": [
+      "vexgraph"
+    ],
+    "publisher": "vexgraph",
+    "description": "samplerate/platform: C core with a platform Objective-C body",
+    "license": "MIT",
+    "homepage": "",
+    "icon": ""
+  },
+  "build": {
+    "entry": "",
+    "sources": [
+      "audio_stream_stub.c"
+    ],
+    "includes": [
+      "samplerate",
+      "."
+    ],
+    "defines": [],
+    "options": [
+      "-Wall",
+      "-Wextra"
+    ],
+    "link": "static"
+  },
+  "payload": {
+    "files": []
+  },
+  "targets": {},
+  "formats": [
+    "portable"
+  ],
+  "statePolicy": "clean"
+}
