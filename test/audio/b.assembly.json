@@ -1,0 +1,28 @@
+{
+  "application": {
+    "id": "local.vexgraph.audio",
+    "name": "audio",
+    "displayName": "Audio",
+    "version": "",
+    "type": "cli",
+    "authors": ["vexgraph"],
+    "publisher": "vexgraph",
+    "description": "",
+    "license": "UNLICENSED",
+    "homepage": "",
+    "icon": ""
+  },
+  "build": {
+    "entry": "audio_hal_test.c",
+    "sources": ["audio_hal_test.c"],
+    "includes": ["vexspoke", "re", "lifetime"],
+    "dependencies": ["lifetime", "re", "vexspoke"],
+    "defines": [],
+    "options": [],
+    "link": "executable"
+  },
+  "payload": { "files": [] },
+  "targets": {},
+  "formats": ["portable"],
+  "statePolicy": "clean"
+}
