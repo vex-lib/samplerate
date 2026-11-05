@@ -2,18 +2,19 @@
 > Universal constitution: `gist.md` is the compressed law list; `PREFERENCES.md` is its rationale.
 
 ## 0. Constitution Link (supreme)
-- [gist.md](https://gist.github.com/vex-graph/4132a6c45cb6d3797c3e8eff2e94035a#file-gist-md) — the compressed law list, mirrored in this workspace at `../../../metadata/gists/preferences/gist.md`. It is the only normative law text; `../../../metadata/gists/preferences/PREFERENCES.md` carries the rationale and is never ingested whole. Numbers are slice addresses inside one file, never law identity: cite by Title.
+- [gist.md](https://gist.github.com/vex-graph/4132a6c45cb6d3797c3e8eff2e94035a#file-gist-md) — the compressed law list, mirrored in this workspace at `../../metadata/gists/preferences/gist.md`. It is the only normative law text; `../../../metadata/gists/preferences/PREFERENCES.md` carries the rationale and is never ingested whole. Numbers are slice addresses inside one file, never law identity: cite by Title.
 - All universal laws bind all repositories. Read one on demand from the workspace root: `./tools/prefs law "<title>"`, `./tools/prefs section "<section>"`, `./tools/prefs repo <name>`.
 - `samplerate`-exclusive: R3 native audio driver, sibling to `graphvex`; Vexspoke supplies R2 CPU computation/synchronization/behavior; Relational Engine owns memory/storage/native C search; native CoreAudio/WASAPI/ALSA backends live here; R5 DAW `impedance` consumes samplerate. No allocator replacement or Rust/C audio integration proof; GPU shaders/dispatch remain Graphvex R3.
 
 ## 1. Repo-Local Law Index (Binding Matrix)
 
-Universal laws inherit from the compressed constitution (`../../../metadata/gists/preferences/gist.md`); this table indexes additional repository laws.
+Universal laws inherit from the compressed constitution (`../../metadata/gists/preferences/gist.md`); this table indexes additional repository laws.
 
 | Law Title | Scope | Enforcement |
 | :--- | :--- | :--- |
 | **Zero-Allocation Audio Callback Law** | R3 Audio Driver | Mandatory for `samplerate` |
 | **Lockless Ring Transport Law** | R3 Audio Driver | Mandatory for `samplerate` |
+| **Audio Ownership Law (from vexspoke)** | R3 Audio Driver | Mandatory for `samplerate` |
 
 ## 2. Exclusive Repo-Local Laws (FULL PROSE RESTATEMENT)
 
@@ -42,6 +43,17 @@ Lock contention between audio-render threads and application logic causes priori
 #### The Rule:
 1. **Atomic Pointers:** Coordinate read/write indices with atomic operations using acquire-release semantics.
 2. **Bounded Drift:** Overflow or underflow fades or silences gracefully, without deadlock.
+
+---
+
+### Audio Ownership Law (from vexspoke)
+
+Samplerate owns the platform-agnostic audio surface (`audio/audio.h`,
+`audio/audio_hal.h`) plus the macOS AVFoundation backend
+(`platform/audio_cocoa.m`, `platform/audio_hal_mac.m`) and the portable stub
+(`audio/audio_stub.c`, `audio/audio_hal_stub.c`), migrated from vexspoke.
+The R5 DAW `impedance` consumes samplerate's HAL, never vexspoke's. Owner test:
+`test/audio/audio_hal_test.c`.
 
 ---
 

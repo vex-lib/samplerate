@@ -54,12 +54,12 @@ implied. This audio driver and the R5 application suite are unfinished.
 - `src/stream` — `audio_stream` contract; `src/platform` its native backends.
 - Future: `sample/`, `transport/`, `graph/`, `synth/`, `filter/`, `effect/`,
   `io/`, `seq/`, `music/`, `gpu/`.
-- Tests: the shared `../../tests` repo will host `tests/samplerate/`
+- Tests: the shared `../tests` repo will host `tests/samplerate/`
   (mirrored per unit, the Test Tree Mirror Law); no test file lives inside this
   repo's source directories (the Test Segregation Law).
 
 ## Laws that govern work here
-- Constitution: the [canonical preferences Gist](https://gist.github.com/vex-graph/4132a6c45cb6d3797c3e8eff2e94035a); the compressed workspace law list is `../../../metadata/gists/preferences/gist.md`.
+- Constitution: the [canonical preferences Gist](https://gist.github.com/vex-graph/4132a6c45cb6d3797c3e8eff2e94035a); the compressed workspace law list is `../../metadata/gists/preferences/gist.md`.
 - Commits land in THIS repo root, one cohesive unit each; never push unless asked.
 - Bounded Wait Law is load-bearing here: no unbounded waits on the audio path,
   ever — drop-degrade, keep the old buffer, move on.
