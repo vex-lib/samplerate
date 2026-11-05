@@ -6,7 +6,7 @@
 #include <stdint.h>
 
 #include "c23/constructor.h"
-#include "annotation/what.h"
+#include "annotation/annotation.h"
 
 // stream/audio_stream.h — the native output stream: the audio counterpart to
 // graphvex's presentation backend. The contract is identical on every platform;
