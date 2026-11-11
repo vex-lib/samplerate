@@ -69,27 +69,27 @@ void AudioStream_free(AudioStream *self) {
     (void) self;
 }
 
-double AudioStream_getSampleRate(const AudioStream *self) {
+d64 AudioStream_getSampleRate(const AudioStream *self) {
     (void) self;
     return 0.0;
 }
 
-uint32_t AudioStream_getChannels(const AudioStream *self) {
+u32 AudioStream_getChannels(const AudioStream *self) {
     (void) self;
     return 0u;
 }
 
-uint32_t AudioStream_getFramesPerBlock(const AudioStream *self) {
+u32 AudioStream_getFramesPerBlock(const AudioStream *self) {
     (void) self;
     return 0u;
 }
 
-double AudioStream_getLatencyMs(const AudioStream *self) {
+d64 AudioStream_getLatencyMs(const AudioStream *self) {
     (void) self;
     return 0.0;
 }
 
-void AudioStream_toString(const AudioStream *self, char *dest, size_t cap, bool *outTruncated) {
+void AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
     (void) self;
     if (outTruncated)
         *outTruncated = false;
@@ -101,7 +101,7 @@ void AudioStream_toString(const AudioStream *self, char *dest, size_t cap, bool 
     (void) snprintf(dest, cap, "AudioStream(unavailable)");
 }
 
-void AudioStream_toStringStruct(const AudioStream *self, char *dest, size_t cap, bool *outTruncated) {
+void AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
     (void) self;
     if (outTruncated)
         *outTruncated = false;

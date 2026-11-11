@@ -13,7 +13,7 @@
  * DEFINITION: AudioHal_mac
  * ============================================================================
  * macOS native CoreAudio HAL output unit bridge: creates a default-output
- * AudioUnit with float PCM stream format and a render callback that feeds
+ * AudioUnit with f32 PCM stream format and a render callback that feeds
  * real-time DSP straight into hardware output at minimal buffer latency. The
  * AudioHal struct is heap-allocated (malloc/free) because it must outlive
  * the caller's stack and is owned by the audio subsystem; destroy stops the
@@ -61,9 +61,9 @@
 struct AudioHal {
     AudioComponentInstance audio_unit;
     bool is_running;
-    double sample_rate;
-    uint32_t channels;
-    uint32_t buffer_frames;
+    d64 sample_rate;
+    u32 channels;
+    u32 buffer_frames;
     AudioHalRenderCallback callback;
     void *user_data;
 };
@@ -89,19 +89,19 @@ AudioHalConfig AudioHalConfig_2(AudioHalRenderCallback callback, void *user_data
     return cfg;
 }
 
-bool AudioHalConfig_set_sample_rate(AudioHalConfig *config, double sample_rate) {
+bool AudioHalConfig_set_sample_rate(AudioHalConfig *config, d64 sample_rate) {
     if (!config || sample_rate <= 0.0) return false;
     (*config).sample_rate = sample_rate;
     return true;
 }
 
-bool AudioHalConfig_set_channels(AudioHalConfig *config, uint32_t channels) {
+bool AudioHalConfig_set_channels(AudioHalConfig *config, u32 channels) {
     if (!config || channels == 0) return false;
     (*config).channels = channels;
     return true;
 }
 
-bool AudioHalConfig_set_buffer_frames(AudioHalConfig *config, uint32_t buffer_frames) {
+bool AudioHalConfig_set_buffer_frames(AudioHalConfig *config, u32 buffer_frames) {
     if (!config || buffer_frames == 0) return false;
     (*config).buffer_frames = buffer_frames;
     return true;
@@ -124,13 +124,13 @@ static OSStatus audio_hal_render_proc(
         return noErr;
     }
 
-    float *out_buf = (float*) (*ioData).mBuffers[0].mData;
-    uint32_t channels = (*hal).channels;
+    f32 *out_buf = (f32*) (*ioData).mBuffers[0].mData;
+    u32 channels = (*hal).channels;
 
     if ((*hal).callback) {
-        (*hal).callback(out_buf, (uint32_t) inNumberFrames, channels, (*hal).user_data);
+        (*hal).callback(out_buf, (u32) inNumberFrames, channels, (*hal).user_data);
     } else {
-        size_t Bytes = (size_t) inNumberFrames * channels * sizeof(float);
+        bytes Bytes = (bytes) inNumberFrames * channels * sizeof(f32);
         memset(out_buf, 0, Bytes);
     }
 
@@ -170,9 +170,9 @@ AudioHal *AudioHal_1(const AudioHalConfig *config) {
     asbd.mSampleRate = cfg.sample_rate;
     asbd.mFormatID = kAudioFormatLinearPCM;
     asbd.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
-    asbd.mBytesPerPacket = cfg.channels * sizeof(float);
+    asbd.mBytesPerPacket = cfg.channels * sizeof(f32);
     asbd.mFramesPerPacket = 1;
-    asbd.mBytesPerFrame = cfg.channels * sizeof(float);
+    asbd.mBytesPerFrame = cfg.channels * sizeof(f32);
     asbd.mChannelsPerFrame = cfg.channels;
     asbd.mBitsPerChannel = 32;
 
@@ -282,21 +282,21 @@ bool AudioHal_is_running(const AudioHal *hal) {
     return hal ? (*hal).is_running : false;
 }
 
-double AudioHal_get_sample_rate(const AudioHal *hal) {
+d64 AudioHal_get_sample_rate(const AudioHal *hal) {
     return hal ? (*hal).sample_rate : 0.0;
 }
 
-uint32_t AudioHal_get_channels(const AudioHal *hal) {
+u32 AudioHal_get_channels(const AudioHal *hal) {
     return hal ? (*hal).channels : 0;
 }
 
-uint32_t AudioHal_get_buffer_frames(const AudioHal *hal) {
+u32 AudioHal_get_buffer_frames(const AudioHal *hal) {
     return hal ? (*hal).buffer_frames : 0;
 }
 
-double AudioHal_get_latency_ms(const AudioHal *hal) {
+d64 AudioHal_get_latency_ms(const AudioHal *hal) {
     if (!hal || (*hal).sample_rate <= 0.0) {
         return 0.0;
     }
-    return (1000.0 * (double) (*hal).buffer_frames) / (*hal).sample_rate;
+    return (1000.0 * (d64) (*hal).buffer_frames) / (*hal).sample_rate;
 }

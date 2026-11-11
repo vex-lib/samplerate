@@ -96,7 +96,7 @@ AudioClip *AudioClip_load(const char *path) {
     return nullptr;
 }
 
-AudioClip *AudioClip_tone(float frequencyHz, float seconds) {
+AudioClip *AudioClip_tone(f32 frequencyHz, f32 seconds) {
     (void)frequencyHz;
     (void)seconds;
     return nullptr;
@@ -106,7 +106,7 @@ void AudioClip_free(AudioClip *clip) {
     (void)clip;
 }
 
-float AudioClip_seconds(AudioClip *clip) {
+f32 AudioClip_seconds(AudioClip *clip) {
     (void)clip;
     return 0.0f;
 }
@@ -124,12 +124,12 @@ void AudioVoice_setClip(AudioVoice *voice, AudioClip *clip) {
     (void)clip;
 }
 
-void AudioVoice_setGain(AudioVoice *voice, float gain) {
+void AudioVoice_setGain(AudioVoice *voice, f32 gain) {
     (void)voice;
     (void)gain;
 }
 
-void AudioVoice_setPitch(AudioVoice *voice, float pitch) {
+void AudioVoice_setPitch(AudioVoice *voice, f32 pitch) {
     (void)voice;
     (void)pitch;
 }
@@ -167,12 +167,12 @@ Audio *Audio_load(const char *path) {
     return nullptr;
 }
 
-Audio *Audio_withRate(double sampleRate) {
+Audio *Audio_withRate(d64 sampleRate) {
     (void)sampleRate;
     return nullptr;
 }
 
-Audio *Audio_2(double sampleRate, int channels) {
+Audio *Audio_2(d64 sampleRate, int channels) {
     (void)sampleRate;
     (void)channels;
     return nullptr;
@@ -195,22 +195,22 @@ bool Audio_isPlaying(Audio *a) {
     return false;
 }
 
-void Audio_setGain(Audio *a, float gain) {
+void Audio_setGain(Audio *a, f32 gain) {
     (void)a;
     (void)gain;
 }
 
-float Audio_getGain(Audio *a) {
+f32 Audio_getGain(Audio *a) {
     (void)a;
     return 0.0f;
 }
 
-void Audio_setPitch(Audio *a, float pitch) {
+void Audio_setPitch(Audio *a, f32 pitch) {
     (void)a;
     (void)pitch;
 }
 
-float Audio_getPitch(Audio *a) {
+f32 Audio_getPitch(Audio *a) {
     (void)a;
     return 1.0f;
 }
@@ -225,12 +225,12 @@ bool Audio_getLooping(Audio *a) {
     return false;
 }
 
-void Audio_setSampleRate(Audio *a, double rate) {
+void Audio_setSampleRate(Audio *a, d64 rate) {
     (void)a;
     (void)rate;
 }
 
-double Audio_getSampleRate(Audio *a) {
+d64 Audio_getSampleRate(Audio *a) {
     (void)a;
     return 0.0;
 }

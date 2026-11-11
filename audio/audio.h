@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "c23/constructor.h"
+#include "util/constructor.h"
 
 // audio/audio.h — platform-agnostic audio API.
 //
@@ -28,9 +28,9 @@ bool Audio_isReady(void);
 // Clips: decoded media (wav/mp3/m4a/aiff) or synthesized tone. Blocks are
 // self-describing; nullptr on failure.
 AudioClip *AudioClip_load(const char *path);
-AudioClip *AudioClip_tone(float frequencyHz, float seconds);
+AudioClip *AudioClip_tone(f32 frequencyHz, f32 seconds);
 void AudioClip_free(AudioClip *clip);
-float AudioClip_seconds(AudioClip *clip);
+f32 AudioClip_seconds(AudioClip *clip);
 
 // Voices: one player channel each. A voice holds at most one clip reference;
 // re-set clips freely between plays.
@@ -38,8 +38,8 @@ AudioVoice *AudioVoice_0(void);
 #define AudioVoice(...) CONSTRUCTOR_DISPATCH(AudioVoice, __VA_ARGS__)
 void AudioVoice_free(AudioVoice *voice);
 void AudioVoice_setClip(AudioVoice *voice, AudioClip *clip);
-void AudioVoice_setGain(AudioVoice *voice, float gain);    // 0.0 .. 1.0+
-void AudioVoice_setPitch(AudioVoice *voice, float pitch);  // 1.0 = native rate
+void AudioVoice_setGain(AudioVoice *voice, f32 gain);    // 0.0 .. 1.0+
+void AudioVoice_setPitch(AudioVoice *voice, f32 pitch);  // 1.0 = native rate
 void AudioVoice_setLooping(AudioVoice *voice, bool looping);
 void AudioVoice_play(AudioVoice *voice);
 void AudioVoice_pause(AudioVoice *voice);
@@ -62,8 +62,8 @@ typedef struct Audio Audio;
 
 Audio *Audio_0(void);
 Audio *Audio_load(const char *path);
-Audio *Audio_withRate(double sampleRate);
-Audio *Audio_2(double sampleRate, int channels);
+Audio *Audio_withRate(d64 sampleRate);
+Audio *Audio_2(d64 sampleRate, int channels);
 
 #define Audio_1(a) _Generic((a),                    \
     char *: Audio_load,                             \
@@ -80,14 +80,14 @@ bool Audio_isPlaying(Audio *a);
 void Audio_free(Audio *a);       // final — detached and released
 
 // --- setters / getters (the X in Audio_setX / Audio_getX) ---
-void Audio_setGain(Audio *a, float gain);
-float Audio_getGain(Audio *a);
-void Audio_setPitch(Audio *a, float pitch);
-float Audio_getPitch(Audio *a);
+void Audio_setGain(Audio *a, f32 gain);
+f32 Audio_getGain(Audio *a);
+void Audio_setPitch(Audio *a, f32 pitch);
+f32 Audio_getPitch(Audio *a);
 void Audio_setLooping(Audio *a, bool looping);
 bool Audio_getLooping(Audio *a);
-void Audio_setSampleRate(Audio *a, double rate);
-double Audio_getSampleRate(Audio *a);
+void Audio_setSampleRate(Audio *a, d64 rate);
+d64 Audio_getSampleRate(Audio *a);
 void Audio_setChannels(Audio *a, int channels);
 int Audio_getChannels(Audio *a);
 

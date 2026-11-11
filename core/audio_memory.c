@@ -52,14 +52,14 @@ MemoryArena *AudioMemory_arena(void) {
     return s_arena;
 }
 
-void *AudioMemory_alloc(uint64_t typeId, size_t numBytes) {
+void *AudioMemory_alloc(u64 typeId, bytes numBytes) {
     MemoryArena *a = AudioMemory_arena();
     if (a == nullptr || numBytes == 0)
         return nullptr;
     return MemoryArena_alloc(a, typeId, numBytes);
 }
 
-void *AudioMemory_realloc(void *userPtr, size_t newBytes) {
+void *AudioMemory_realloc(void *userPtr, bytes newBytes) {
     MemoryArena *a = s_arena;
     if (a == nullptr || userPtr == nullptr || newBytes == 0)
         return nullptr;
@@ -72,7 +72,7 @@ void AudioMemory_free(void *userPtr) {
     MemoryArena_free(s_arena, userPtr);
 }
 
-void *AudioMemory_scratch(uint64_t typeId, size_t numBytes) {
+void *AudioMemory_scratch(u64 typeId, bytes numBytes) {
     if (!s_scratchReady)
         s_scratchReady = Memory_initTransient(AUDIO_MEMORY_DEFAULT_SCRATCH_BYTES);
     if (!s_scratchReady || numBytes == 0)

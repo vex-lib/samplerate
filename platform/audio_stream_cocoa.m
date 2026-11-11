@@ -18,7 +18,7 @@
  * DEFINITION: AudioStream (platform/audio_stream_cocoa.m)
  * ============================================================================
  * The macOS implementation of stream/audio_stream.h: a default-output AudioUnit
- * HAL with a float PCM stream format and a render callback that feeds the
+ * HAL with a f32 PCM stream format and a render callback that feeds the
  * caller's realtime callback straight into hardware output at minimal buffer
  * latency. This is the audio counterpart to graphvex's presentation backend —
  * the same contract on every platform, a native unit behind it.
@@ -41,9 +41,9 @@
  * ----------------------------------------------------------------------------
  *   AudioComponentInstance unit;        // default-output AudioUnit (OS-owned)
  *   bool   running;                     // AudioOutputUnitStart succeeded
- *   double sampleRate;                  // negotiated Hz
- *   uint32_t channels;                  // negotiated channel count
- *   uint32_t framesPerBlock;            // requested render quantum (frames)
+ *   d64 sampleRate;                  // negotiated Hz
+ *   u32 channels;                  // negotiated channel count
+ *   u32 framesPerBlock;            // requested render quantum (frames)
  *   AudioRenderCallback callback;       // caller's realtime pull
  *   ;;WHAT("caller render context")
  *   void *userData;                     // passed back to callback
@@ -62,9 +62,9 @@
 typedef struct AudioStream {
     AudioComponentInstance unit;
     bool running;
-    double sampleRate;
-    uint32_t channels;
-    uint32_t framesPerBlock;
+    d64 sampleRate;
+    u32 channels;
+    u32 framesPerBlock;
     AudioRenderCallback callback;
     ;;WHAT("caller render context")
     void *userData;
@@ -83,14 +83,14 @@ static OSStatus audioStreamRender(void *inRefCon,
     AudioStream *self = (AudioStream*) inRefCon;
     if (self == nullptr || ioData == nullptr || (*ioData).mNumberBuffers == 0u)
         return noErr;
-    float *out = (float*) (*ioData).mBuffers[0].mData;
+    f32 *out = (f32*) (*ioData).mBuffers[0].mData;
     if (out == nullptr)
         return noErr;
-    uint32_t channels = (*self).channels;
+    u32 channels = (*self).channels;
     if ((*self).callback != nullptr)
-        (*self).callback(out, (uint32_t) inNumberFrames, channels, (*self).userData);
+        (*self).callback(out, (u32) inNumberFrames, channels, (*self).userData);
     else
-        memset(out, 0, (size_t) inNumberFrames * (size_t) channels * sizeof(float));
+        memset(out, 0, (bytes) inNumberFrames * (bytes) channels * sizeof(f32));
     return noErr;
 }
 
@@ -148,9 +148,9 @@ bool AudioStream_open(AudioStream *self) {
     asbd.mSampleRate = (*self).sampleRate;
     asbd.mFormatID = kAudioFormatLinearPCM;
     asbd.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
-    asbd.mBytesPerPacket = (*self).channels * sizeof(float);
+    asbd.mBytesPerPacket = (*self).channels * sizeof(f32);
     asbd.mFramesPerPacket = 1;
-    asbd.mBytesPerFrame = (*self).channels * sizeof(float);
+    asbd.mBytesPerFrame = (*self).channels * sizeof(f32);
     asbd.mChannelsPerFrame = (*self).channels;
     asbd.mBitsPerChannel = 32;
 
@@ -231,25 +231,25 @@ void AudioStream_free(AudioStream *self) {
     AudioMemory_free(self);
 }
 
-double AudioStream_getSampleRate(const AudioStream *self) {
+d64 AudioStream_getSampleRate(const AudioStream *self) {
     return self ? (*self).sampleRate : 0.0;
 }
 
-uint32_t AudioStream_getChannels(const AudioStream *self) {
+u32 AudioStream_getChannels(const AudioStream *self) {
     return self ? (*self).channels : 0u;
 }
 
-uint32_t AudioStream_getFramesPerBlock(const AudioStream *self) {
+u32 AudioStream_getFramesPerBlock(const AudioStream *self) {
     return self ? (*self).framesPerBlock : 0u;
 }
 
-double AudioStream_getLatencyMs(const AudioStream *self) {
+d64 AudioStream_getLatencyMs(const AudioStream *self) {
     if (self == nullptr || (*self).sampleRate <= 0.0 || (*self).framesPerBlock == 0u)
         return 0.0;
-    return (1000.0 * (double) (*self).framesPerBlock) / (*self).sampleRate;
+    return (1000.0 * (d64) (*self).framesPerBlock) / (*self).sampleRate;
 }
 
-void AudioStream_toString(const AudioStream *self, char *dest, size_t cap, bool *outTruncated) {
+void AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {
@@ -259,7 +259,7 @@ void AudioStream_toString(const AudioStream *self, char *dest, size_t cap, bool 
     }
     if (self == nullptr) {
         int n = snprintf(dest, cap, "nullptr");
-        if (outTruncated && n >= 0 && (size_t) n >= cap)
+        if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
@@ -267,11 +267,11 @@ void AudioStream_toString(const AudioStream *self, char *dest, size_t cap, bool 
                      (*self).running ? "running" : "stopped",
                      (*self).sampleRate, (*self).channels,
                      AudioStream_getLatencyMs(self));
-    if (outTruncated && n >= 0 && (size_t) n >= cap)
+    if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }
 
-void AudioStream_toStringStruct(const AudioStream *self, char *dest, size_t cap, bool *outTruncated) {
+void AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {
@@ -281,7 +281,7 @@ void AudioStream_toStringStruct(const AudioStream *self, char *dest, size_t cap,
     }
     if (self == nullptr) {
         int n = snprintf(dest, cap, "nullptr");
-        if (outTruncated && n >= 0 && (size_t) n >= cap)
+        if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
@@ -291,6 +291,6 @@ void AudioStream_toStringStruct(const AudioStream *self, char *dest, size_t cap,
                      (*self).running ? "true" : "false",
                      (*self).sampleRate, (*self).channels, (*self).framesPerBlock,
                      (*self).callback ? "set" : "none");
-    if (outTruncated && n >= 0 && (size_t) n >= cap)
+    if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }

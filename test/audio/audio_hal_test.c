@@ -17,7 +17,7 @@ static int g_failures = 0;
         }                                                                  \
     } while (0)
 
-static void renderSilence(float *output, uint32_t frames, uint32_t channels,
+static void renderSilence(f32 *output, u32 frames, u32 channels,
                           void *context) {
     (void) output;
     (void) frames;

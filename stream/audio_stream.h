@@ -24,14 +24,14 @@
 //   #define AudioStream(...) CONSTRUCTOR_DISPATCH(...)
 
 // One realtime render callback. Called by the OS audio thread; fills
-// interleavedOutput with frames * channels floats (zero-fill for silence).
-typedef void (*AudioRenderCallback)(float *interleavedOutput, uint32_t frames,
-                                    uint32_t channels, void *userData);
+// interleavedOutput with frames * channels f32s (zero-fill for silence).
+typedef void (*AudioRenderCallback)(f32 *interleavedOutput, u32 frames,
+                                    u32 channels, void *userData);
 
 typedef struct AudioStreamConfig {
-    double sampleRate;        // 0 = device default
-    uint32_t channels;        // 0 = device default
-    uint32_t framesPerBlock;  // 0 = device default
+    d64 sampleRate;        // 0 = device default
+    u32 channels;        // 0 = device default
+    u32 framesPerBlock;  // 0 = device default
     AudioRenderCallback callback;
     ;;WHAT("caller render context")
     void *userData;
@@ -67,13 +67,13 @@ bool AudioStream_stop(AudioStream *self);
 bool AudioStream_isRunning(const AudioStream *self);
 
 // Negotiated stream properties; 0.0 when none. Null-safe.
-double AudioStream_getSampleRate(const AudioStream *self);
-uint32_t AudioStream_getChannels(const AudioStream *self);
-uint32_t AudioStream_getFramesPerBlock(const AudioStream *self);
-double AudioStream_getLatencyMs(const AudioStream *self);
+d64 AudioStream_getSampleRate(const AudioStream *self);
+u32 AudioStream_getChannels(const AudioStream *self);
+u32 AudioStream_getFramesPerBlock(const AudioStream *self);
+d64 AudioStream_getLatencyMs(const AudioStream *self);
 
 // Bounded string projections (the toString Law). Cold path only.
-void AudioStream_toString(const AudioStream *self, char *dest, size_t cap, bool *outTruncated);
-void AudioStream_toStringStruct(const AudioStream *self, char *dest, size_t cap, bool *outTruncated);
+void AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated);
+void AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated);
 
 #endif // STREAM_AUDIO_STREAM_H

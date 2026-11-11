@@ -36,7 +36,7 @@
  * ----------------------------------------------------------------------------
  *   AudioClip {
  *     AVAudioPCMBuffer *buffer; // decoded or synthesized PCM block
- *     float seconds;            // clip duration in seconds
+ *     f32 seconds;            // clip duration in seconds
  *   }
  *   AudioVoice {
  *     AVAudioPlayerNode *node;  // attached player node
@@ -49,9 +49,9 @@
  *     AVAudioPlayerNode *node;  // wired player node
  *     bool active;              // play state
  *     bool looping;             // loop flag
- *     float gain;               // volume 0.0 .. 1.0+
- *     float pitch;              // rate 1.0 = native
- *     double rate;              // sample rate
+ *     f32 gain;               // volume 0.0 .. 1.0+
+ *     f32 pitch;              // rate 1.0 = native
+ *     d64 rate;              // sample rate
  *     int channels;             // AUDIO_MONO / AUDIO_STEREO
  *   }
  *
@@ -122,7 +122,7 @@ static bool s_ready = false;
 
 typedef struct AudioClip {
     AVAudioPCMBuffer *buffer;
-    float seconds;
+    f32 seconds;
 } AudioClip;
 
 typedef struct AudioVoice {
@@ -172,7 +172,7 @@ bool Audio_isReady(void) {
     return s_ready;
 }
 
-static AudioClip *clipAlloc(float seconds) {
+static AudioClip *clipAlloc(f32 seconds) {
     AudioClip *clip = (AudioClip*) Memory_alloc(TYPE_AUDIO_CLIP_SINGLETON, sizeof(AudioClip));
     if (clip) {
         (*clip).buffer = nullptr;
@@ -203,8 +203,8 @@ AudioClip *AudioClip_load(const char *path) {
         if (![file readIntoBuffer:buf error:nullptr] || buf.frameLength == 0)
             return nullptr;
 
-        double secs = (double)frames / (double)format.sampleRate;
-        AudioClip *clip = clipAlloc((float)secs);
+        d64 secs = (d64)frames / (d64)format.sampleRate;
+        AudioClip *clip = clipAlloc((f32)secs);
         if (!clip)
             return nullptr;
         (*clip).buffer = buf;
@@ -212,13 +212,13 @@ AudioClip *AudioClip_load(const char *path) {
     }
 }
 
-AudioClip *AudioClip_tone(float frequencyHz, float seconds) {
+AudioClip *AudioClip_tone(f32 frequencyHz, f32 seconds) {
     if (!s_ready || seconds <= 0.0f || frequencyHz <= 0.0f)
         return nullptr;
     @autoreleasepool {
         AVAudioFormat *format = [[s_engine outputNode] outputFormatForBus:0];
-        double rate = (double)format.sampleRate;
-        AVAudioFrameCount frames = (AVAudioFrameCount)(rate * (double)seconds);
+        d64 rate = (d64)format.sampleRate;
+        AVAudioFrameCount frames = (AVAudioFrameCount)(rate * (d64)seconds);
 
         AVAudioPCMBuffer *buf = [[AVAudioPCMBuffer alloc]
             initWithPCMFormat:format frameCapacity:frames];
@@ -226,15 +226,15 @@ AudioClip *AudioClip_tone(float frequencyHz, float seconds) {
             return nullptr;
         buf.frameLength = frames;
 
-        float *left = buf.floatChannelData[0];
+        f32 *left = buf.f32ChannelData[0];
         for (AVAudioFrameCount i = 0; i < frames; i++) {
-            left[i] = sinf(2.0f * (float)M_PI * frequencyHz * (float)i / (float)rate);
+            left[i] = sinf(2.0f * (f32)M_PI * frequencyHz * (f32)i / (f32)rate);
         }
         // mono source into N channels
         int channels = (int)format.channelCount;
         for (int c = 1; c < channels; c++) {
-            float *ch = buf.floatChannelData[c];
-            memcpy(ch, left, frames * sizeof(float));
+            f32 *ch = buf.f32ChannelData[c];
+            memcpy(ch, left, frames * sizeof(f32));
         }
 
         AudioClip *clip = clipAlloc(seconds);
@@ -252,7 +252,7 @@ void AudioClip_free(AudioClip *clip) {
     Memory_free(clip);
 }
 
-float AudioClip_seconds(AudioClip *clip) {
+f32 AudioClip_seconds(AudioClip *clip) {
     return clip ? (*clip).seconds : 0.0f;
 }
 
@@ -334,13 +334,13 @@ void AudioVoice_setClip(AudioVoice *voice, AudioClip *clip) {
     (*voice).clip = clip;
 }
 
-void AudioVoice_setGain(AudioVoice *voice, float gain) {
+void AudioVoice_setGain(AudioVoice *voice, f32 gain) {
     if (!voice)
         return;
     [(*voice).node setVolume:gain];
 }
 
-void AudioVoice_setPitch(AudioVoice *voice, float pitch) {
+void AudioVoice_setPitch(AudioVoice *voice, f32 pitch) {
     if (!voice || pitch <= 0.0f)
         return;
     [(*voice).node setRate:pitch];
@@ -394,13 +394,13 @@ typedef struct Audio {
     AVAudioPlayerNode *node;
     bool active;
     bool looping;
-    float gain;
-    float pitch;
-    double rate;
+    f32 gain;
+    f32 pitch;
+    d64 rate;
     int channels;
 } Audio;
 
-static void audioInitFields(Audio *a, double rate, int channels) {
+static void audioInitFields(Audio *a, d64 rate, int channels) {
     (*a).buffer = nullptr;
     (*a).node = nullptr;
     (*a).active = false;
@@ -438,14 +438,14 @@ Audio *Audio_0(void) {
     }
 }
 
-Audio *Audio_withRate(double sampleRate) {
+Audio *Audio_withRate(d64 sampleRate) {
     Audio *a = Audio_0();
     if (a)
         (*a).rate = sampleRate > 0.0 ? sampleRate : 44100.0;
     return a;
 }
 
-Audio *Audio_2(double sampleRate, int channels) {
+Audio *Audio_2(d64 sampleRate, int channels) {
     Audio *a = Audio_withRate(sampleRate);
     if (a && (channels == AUDIO_MONO || channels == AUDIO_STEREO))
         (*a).channels = channels;
@@ -517,7 +517,7 @@ bool Audio_isPlaying(Audio *a) {
     return [(AVAudioPlayerNode*) (*a).node isPlaying];
 }
 
-void Audio_setGain(Audio *a, float gain) {
+void Audio_setGain(Audio *a, f32 gain) {
     if (!a)
         return;
     (*a).gain = gain;
@@ -525,11 +525,11 @@ void Audio_setGain(Audio *a, float gain) {
         (*a).node.volume = gain;
 }
 
-float Audio_getGain(Audio *a) {
+f32 Audio_getGain(Audio *a) {
     return a ? (*a).gain : 0.0f;
 }
 
-void Audio_setPitch(Audio *a, float pitch) {
+void Audio_setPitch(Audio *a, f32 pitch) {
     if (!a || pitch <= 0.0f)
         return;
     (*a).pitch = pitch;
@@ -537,7 +537,7 @@ void Audio_setPitch(Audio *a, float pitch) {
         (*a).node.rate = pitch;
 }
 
-float Audio_getPitch(Audio *a) {
+f32 Audio_getPitch(Audio *a) {
     return a ? (*a).pitch : 1.0f;
 }
 
@@ -550,13 +550,13 @@ bool Audio_getLooping(Audio *a) {
     return a ? (*a).looping : false;
 }
 
-void Audio_setSampleRate(Audio *a, double rate) {
+void Audio_setSampleRate(Audio *a, d64 rate) {
     if (!a || rate <= 0.0)
         return;
     (*a).rate = rate;
 }
 
-double Audio_getSampleRate(Audio *a) {
+d64 Audio_getSampleRate(Audio *a) {
     return a ? (*a).rate : 0.0;
 }
 

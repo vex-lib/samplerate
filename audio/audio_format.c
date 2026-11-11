@@ -32,10 +32,10 @@
  *
  * STRUCT FIELDS (audio/audio_format.c only):
  * ----------------------------------------------------------------------------
- *   double   sampleRate;      // Hz (AUDIO_RATE_MIN..AUDIO_RATE_MAX)
- *   uint32_t channels;        // 1..AUDIO_CHANNELS_MAX
- *   uint32_t framesPerBlock;  // render quantum in frames (1..AUDIO_BLOCK_FRAMES_MAX)
- *   uint32_t sampleType;      // AUDIO_SAMPLE_*
+ *   d64   sampleRate;      // Hz (AUDIO_RATE_MIN..AUDIO_RATE_MAX)
+ *   u32 channels;        // 1..AUDIO_CHANNELS_MAX
+ *   u32 framesPerBlock;  // render quantum in frames (1..AUDIO_BLOCK_FRAMES_MAX)
+ *   u32 sampleType;      // AUDIO_SAMPLE_*
  *
  * PUBLIC SURFACE (audio/audio_format.h):
  *   Constructors: AudioFormat_0(), AudioFormat_1(rate), AudioFormat_2(rate, ch)
@@ -47,10 +47,10 @@
  */
 
 typedef struct AudioFormat {
-    double sampleRate;
-    uint32_t channels;
-    uint32_t framesPerBlock;
-    uint32_t sampleType;
+    d64 sampleRate;
+    u32 channels;
+    u32 framesPerBlock;
+    u32 sampleType;
 } AudioFormat;
 
 static AudioFormat *audioFormatAlloc(void) {
@@ -69,14 +69,14 @@ AudioFormat *AudioFormat_0(void) {
     return self;
 }
 
-AudioFormat *AudioFormat_1(double sampleRate) {
+AudioFormat *AudioFormat_1(d64 sampleRate) {
     AudioFormat *self = AudioFormat_0();
     if (self != nullptr)
         AudioFormat_setSampleRate(self, sampleRate);
     return self;
 }
 
-AudioFormat *AudioFormat_2(double sampleRate, uint32_t channels) {
+AudioFormat *AudioFormat_2(d64 sampleRate, u32 channels) {
     AudioFormat *self = AudioFormat_1(sampleRate);
     if (self != nullptr)
         AudioFormat_setChannels(self, channels);
@@ -87,7 +87,7 @@ void AudioFormat_free(AudioFormat *self) {
     AudioMemory_free(self);
 }
 
-void AudioFormat_setSampleRate(AudioFormat *self, double sampleRate) {
+void AudioFormat_setSampleRate(AudioFormat *self, d64 sampleRate) {
     if (self == nullptr) {
         THROW("AudioFormat_setSampleRate: null self");
         return;
@@ -99,7 +99,7 @@ void AudioFormat_setSampleRate(AudioFormat *self, double sampleRate) {
     (*self).sampleRate = sampleRate;
 }
 
-void AudioFormat_setChannels(AudioFormat *self, uint32_t channels) {
+void AudioFormat_setChannels(AudioFormat *self, u32 channels) {
     if (self == nullptr) {
         THROW("AudioFormat_setChannels: null self");
         return;
@@ -111,7 +111,7 @@ void AudioFormat_setChannels(AudioFormat *self, uint32_t channels) {
     (*self).channels = channels;
 }
 
-void AudioFormat_setFramesPerBlock(AudioFormat *self, uint32_t frames) {
+void AudioFormat_setFramesPerBlock(AudioFormat *self, u32 frames) {
     if (self == nullptr) {
         THROW("AudioFormat_setFramesPerBlock: null self");
         return;
@@ -123,7 +123,7 @@ void AudioFormat_setFramesPerBlock(AudioFormat *self, uint32_t frames) {
     (*self).framesPerBlock = frames;
 }
 
-void AudioFormat_setSampleType(AudioFormat *self, uint32_t sampleType) {
+void AudioFormat_setSampleType(AudioFormat *self, u32 sampleType) {
     if (self == nullptr) {
         THROW("AudioFormat_setSampleType: null self");
         return;
@@ -136,19 +136,19 @@ void AudioFormat_setSampleType(AudioFormat *self, uint32_t sampleType) {
     (*self).sampleType = sampleType;
 }
 
-double AudioFormat_getSampleRate(const AudioFormat *self) {
+d64 AudioFormat_getSampleRate(const AudioFormat *self) {
     return self ? (*self).sampleRate : 0.0;
 }
 
-uint32_t AudioFormat_getChannels(const AudioFormat *self) {
+u32 AudioFormat_getChannels(const AudioFormat *self) {
     return self ? (*self).channels : 0u;
 }
 
-uint32_t AudioFormat_getFramesPerBlock(const AudioFormat *self) {
+u32 AudioFormat_getFramesPerBlock(const AudioFormat *self) {
     return self ? (*self).framesPerBlock : 0u;
 }
 
-uint32_t AudioFormat_getSampleType(const AudioFormat *self) {
+u32 AudioFormat_getSampleType(const AudioFormat *self) {
     return self ? (*self).sampleType : AUDIO_SAMPLE_UNKNOWN;
 }
 
@@ -162,7 +162,7 @@ bool AudioFormat_isValid(const AudioFormat *self) {
            (*self).sampleType != AUDIO_SAMPLE_UNKNOWN;
 }
 
-void AudioFormat_toString(const AudioFormat *self, char *dest, size_t cap, bool *outTruncated) {
+void AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated) {
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {
@@ -172,18 +172,18 @@ void AudioFormat_toString(const AudioFormat *self, char *dest, size_t cap, bool 
     }
     if (self == nullptr) {
         int n = snprintf(dest, cap, "nullptr");
-        if (outTruncated && n >= 0 && (size_t) n >= cap)
+        if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
     int n = snprintf(dest, cap, "AudioFormat(%.1f Hz, %u ch, %u frames, type=%u)",
                      (*self).sampleRate, (*self).channels,
                      (*self).framesPerBlock, (*self).sampleType);
-    if (outTruncated && n >= 0 && (size_t) n >= cap)
+    if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }
 
-void AudioFormat_toStringStruct(const AudioFormat *self, char *dest, size_t cap, bool *outTruncated) {
+void AudioFormat_toStringStruct(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated) {
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {
@@ -193,7 +193,7 @@ void AudioFormat_toStringStruct(const AudioFormat *self, char *dest, size_t cap,
     }
     if (self == nullptr) {
         int n = snprintf(dest, cap, "nullptr");
-        if (outTruncated && n >= 0 && (size_t) n >= cap)
+        if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
@@ -201,6 +201,6 @@ void AudioFormat_toStringStruct(const AudioFormat *self, char *dest, size_t cap,
                      "AudioFormat { sampleRate: %.1f, channels: %u, framesPerBlock: %u, sampleType: %u }",
                      (*self).sampleRate, (*self).channels,
                      (*self).framesPerBlock, (*self).sampleType);
-    if (outTruncated && n >= 0 && (size_t) n >= cap)
+    if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }

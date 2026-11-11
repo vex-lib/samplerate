@@ -5,7 +5,7 @@
 #include <stddef.h>
 #include <stdint.h>
 
-#include "c23/constructor.h"
+#include "util/constructor.h"
 
 // audio/audio_format.h — the value class describing a PCM stream shape:
 // sample rate, channel count, frames per render block, and sample type. It is
@@ -18,7 +18,7 @@
 //   #define AudioFormat(...) CONSTRUCTOR_DISPATCH(...)
 
 #define AUDIO_SAMPLE_UNKNOWN 0u
-#define AUDIO_SAMPLE_F32     1u   // 32-bit float, interleaved
+#define AUDIO_SAMPLE_F32     1u   // 32-bit f32, interleaved
 #define AUDIO_SAMPLE_I16     2u   // 16-bit signed PCM, interleaved
 #define AUDIO_SAMPLE_I32     3u   // 32-bit signed PCM, interleaved
 
@@ -39,8 +39,8 @@
 typedef struct AudioFormat AudioFormat;
 
 AudioFormat *AudioFormat_0(void);
-AudioFormat *AudioFormat_1(double sampleRate);
-AudioFormat *AudioFormat_2(double sampleRate, uint32_t channels);
+AudioFormat *AudioFormat_1(d64 sampleRate);
+AudioFormat *AudioFormat_2(d64 sampleRate, u32 channels);
 #define AudioFormat(...) CONSTRUCTOR_DISPATCH(AudioFormat, __VA_ARGS__)
 
 // Release the block back to the Samplerate arena (null-safe).
@@ -49,22 +49,22 @@ void AudioFormat_free(AudioFormat *self);
 // Setters validate at least as strictly as the getters: an out-of-range value is
 // rejected (state preserved) and a cold rejection is reported with THROW. The
 // getters are null-safe and return safe zero defaults.
-void AudioFormat_setSampleRate(AudioFormat *self, double sampleRate);
-void AudioFormat_setChannels(AudioFormat *self, uint32_t channels);
-void AudioFormat_setFramesPerBlock(AudioFormat *self, uint32_t frames);
-void AudioFormat_setSampleType(AudioFormat *self, uint32_t sampleType);
+void AudioFormat_setSampleRate(AudioFormat *self, d64 sampleRate);
+void AudioFormat_setChannels(AudioFormat *self, u32 channels);
+void AudioFormat_setFramesPerBlock(AudioFormat *self, u32 frames);
+void AudioFormat_setSampleType(AudioFormat *self, u32 sampleType);
 
-double AudioFormat_getSampleRate(const AudioFormat *self);
-uint32_t AudioFormat_getChannels(const AudioFormat *self);
-uint32_t AudioFormat_getFramesPerBlock(const AudioFormat *self);
-uint32_t AudioFormat_getSampleType(const AudioFormat *self);
+d64 AudioFormat_getSampleRate(const AudioFormat *self);
+u32 AudioFormat_getChannels(const AudioFormat *self);
+u32 AudioFormat_getFramesPerBlock(const AudioFormat *self);
+u32 AudioFormat_getSampleType(const AudioFormat *self);
 
 // True when the current field combination describes a usable stream shape.
 bool AudioFormat_isValid(const AudioFormat *self);
 
 // Bounded string projections (the toString Law). Cold path only; a null self
 // writes "nullptr". toStringStruct mirrors the fields one layer deep.
-void AudioFormat_toString(const AudioFormat *self, char *dest, size_t cap, bool *outTruncated);
-void AudioFormat_toStringStruct(const AudioFormat *self, char *dest, size_t cap, bool *outTruncated);
+void AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated);
+void AudioFormat_toStringStruct(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated);
 
 #endif // AUDIO_AUDIO_FORMAT_H

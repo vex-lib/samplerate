@@ -28,19 +28,19 @@ MemoryArena *AudioMemory_arena(void);
 
 // Allocate a block from the Samplerate arena with the given type id. nullptr on
 // failure or a null arena.
-void *AudioMemory_alloc(uint64_t typeId, size_t numBytes);
+void *AudioMemory_alloc(u64 typeId, bytes numBytes);
 
 // Grow/shrink an arena block, preserving contents and type. Returns the new
 // payload pointer (the old one is freed); nullptr on failure leaves the
 // original intact.
-void *AudioMemory_realloc(void *userPtr, size_t newBytes);
+void *AudioMemory_realloc(void *userPtr, bytes newBytes);
 
 // Free a block previously returned by AudioMemory_alloc. Null-safe.
 void AudioMemory_free(void *userPtr);
 
 // Bump-allocate per-block scratch (the render-block scratchpad). Excludes
 // active users: call only while the stream is stopped (the Bounded Wait Law).
-void *AudioMemory_scratch(uint64_t typeId, size_t numBytes);
+void *AudioMemory_scratch(u64 typeId, bytes numBytes);
 
 // Reset the scratch bumper. Excludes active users, like AudioMemory_scratch.
 void AudioMemory_resetScratch(void);
