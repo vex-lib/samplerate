@@ -5,7 +5,7 @@
 
 #include "audio/audio_format.h"
 #include "core/audio_memory.h"
-#include "oop/type.h"
+#include "oop/samplerate_type.h"
 
 #include "annotation/annotation.h"
 #include "exception/throw.h"

@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 
-#include "type/type.h"
+#include "type/re_type.h"
 
 // oop/type.h — samplerate's OWN class registry (the One Type Registry Law).
 //
