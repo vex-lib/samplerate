@@ -1,3 +1,4 @@
+#include "vex.h"
 #include "audio/audio_format.h"
 
 #include <stdio.h>
@@ -5,8 +6,6 @@
 #include "core/audio_memory.h"
 #include "oop/samplerate_type.h"
 
-#include "annotation/annotation.h"
-#include "exception/throw.h"
 
 ;;DEFINITION
 /**

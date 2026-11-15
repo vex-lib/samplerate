@@ -1,8 +1,8 @@
+#include "vex.h"
 #include "audio/audio_hal.h"
 
 #include <stdlib.h>
 
-#include "annotation/annotation.h"
 
 ;;DEFINITION
 /**

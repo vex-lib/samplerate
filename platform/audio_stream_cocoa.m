@@ -1,16 +1,15 @@
 #import <AudioToolbox/AudioToolbox.h>
 #import <CoreAudio/CoreAudio.h>
 
+#include "vex.h"
 #include <stdio.h>
 #include <string.h>
 
 #include "stream/audio_stream.h"
 
 #include "core/audio_memory.h"
-#include "oop/type.h"
+#include "oop/samplerate_type.h"
 
-#include "annotation/annotation.h"
-#include "exception/throw.h"
 
 ;;DEFINITION
 /**

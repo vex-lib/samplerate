@@ -3,6 +3,7 @@
 // Proves config constructor arities and setter validation without opening a
 // platform audio device or claiming callback delivery.
 
+#include "vex.h"
 #include <stdio.h>
 
 #include "audio/audio_hal.h"

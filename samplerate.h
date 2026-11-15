@@ -4,6 +4,7 @@
 // samplerate.h — the R3 native audio driver umbrella. One include for the
 // public surface; every class keeps its own header for direct inclusion.
 
+#include "vex.h"
 #include "audio/audio_buffer.h"
 #include "audio/audio_format.h"
 #include "core/audio_memory.h"

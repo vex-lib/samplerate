@@ -1,10 +1,10 @@
+#include "vex.h"
 #include "audio/audio.h"
 
 // audio/audio_stub.c — the silence backend for platforms without the Cocoa
 // seam yet. Same contract, zero sound: every handle fails to allocate and
 // every control is a no-op, so callers stay identical across platforms.
 
-#include "annotation/annotation.h"
 
 ;;DEFINITION
 /**
