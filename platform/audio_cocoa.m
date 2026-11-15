@@ -52,7 +52,7 @@
  *     f32 gain;               // volume 0.0 .. 1.0+
  *     f32 pitch;              // rate 1.0 = native
  *     d64 rate;              // sample rate
- *     int channels;             // AUDIO_MONO / AUDIO_STEREO
+ *     i32 channels;             // AUDIO_MONO / AUDIO_STEREO
  *   }
  *
  * FUNCTION REGISTRY:
@@ -231,8 +231,8 @@ AudioClip *AudioClip_tone(f32 frequencyHz, f32 seconds) {
             left[i] = sinf(2.0f * (f32)M_PI * frequencyHz * (f32)i / (f32)rate);
         }
         // mono source into N channels
-        int channels = (int)format.channelCount;
-        for (int c = 1; c < channels; c++) {
+        i32 channels = (i32)format.channelCount;
+        for (i32 c = 1; c < channels; c++) {
             f32 *ch = buf.floatChannelData[c];
             memcpy(ch, left, frames * sizeof(f32));
         }
@@ -397,10 +397,10 @@ typedef struct Audio {
     f32 gain;
     f32 pitch;
     d64 rate;
-    int channels;
+    i32 channels;
 } Audio;
 
-static fn audioInitFields(Audio *a, d64 rate, int channels) {
+static fn audioInitFields(Audio *a, d64 rate, i32 channels) {
     (*a).buffer = nullptr;
     (*a).node = nullptr;
     (*a).active = false;
@@ -445,7 +445,7 @@ Audio *Audio_withRate(d64 sampleRate) {
     return a;
 }
 
-Audio *Audio_2(d64 sampleRate, int channels) {
+Audio *Audio_2(d64 sampleRate, i32 channels) {
     Audio *a = Audio_withRate(sampleRate);
     if (a && (channels == AUDIO_MONO || channels == AUDIO_STEREO))
         (*a).channels = channels;
@@ -478,7 +478,7 @@ Audio *Audio_load(const char *path) {
             return nullptr;
         (*a).buffer = buf;
         (*a).rate = format.sampleRate;
-        (*a).channels = (int)format.channelCount;
+        (*a).channels = (i32)format.channelCount;
         if (!audioWireUp(a)) {
             Memory_free(a);
             return nullptr;
@@ -560,13 +560,13 @@ d64 Audio_getSampleRate(Audio *a) {
     return a ? (*a).rate : 0.0;
 }
 
-fn Audio_setChannels(Audio *a, int channels) {
+fn Audio_setChannels(Audio *a, i32 channels) {
     if (!a || (channels != AUDIO_MONO && channels != AUDIO_STEREO))
         return;
     (*a).channels = channels;
 }
 
-int Audio_getChannels(Audio *a) {
+i32 Audio_getChannels(Audio *a) {
     return a ? (*a).channels : 0;
 }
 

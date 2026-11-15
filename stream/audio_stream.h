@@ -1,6 +1,8 @@
 #ifndef STREAM_AUDIO_STREAM_H
 #define STREAM_AUDIO_STREAM_H
 
+#include "vex.h"
+
 
 
 
@@ -29,7 +31,6 @@ typedef struct AudioStreamConfig {
     u32 channels;        // 0 = device default
     u32 framesPerBlock;  // 0 = device default
     AudioRenderCallback callback;
-#include "vex.h"
 
     ;;WHAT("caller render context")
     any userData;

@@ -172,7 +172,7 @@ Audio *Audio_withRate(d64 sampleRate) {
     return nullptr;
 }
 
-Audio *Audio_2(d64 sampleRate, int channels) {
+Audio *Audio_2(d64 sampleRate, i32 channels) {
     (discard) sampleRate;
     (discard) channels;
     return nullptr;
@@ -235,12 +235,12 @@ d64 Audio_getSampleRate(Audio *a) {
     return 0.0;
 }
 
-fn Audio_setChannels(Audio *a, int channels) {
+fn Audio_setChannels(Audio *a, i32 channels) {
     (discard) a;
     (discard) channels;
 }
 
-int Audio_getChannels(Audio *a) {
+i32 Audio_getChannels(Audio *a) {
     (discard) a;
     return 0;
 }

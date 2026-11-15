@@ -8,7 +8,7 @@
  * DEFINITION: AudioMemory (core/audio_memory.c)
  * ============================================================================
  * The dedicated Relational Engine arena for the whole Samplerate driver. One
- * master arena is created lazily at first use and every long-lived audio
+ * master arena is created lazily at first use and every i64-lived audio
  * object (format, buffer, stream, and the voices/effects to come) is carved
  * from it, so teardown is a single MemoryArena_destroy at the end of the R1
  * shutdown order and never touches the process-global default arena.

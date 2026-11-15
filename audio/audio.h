@@ -59,7 +59,7 @@ typedef struct Audio Audio;
 Audio *Audio_0();
 Audio *Audio_load(const char *path);
 Audio *Audio_withRate(d64 sampleRate);
-Audio *Audio_2(d64 sampleRate, int channels);
+Audio *Audio_2(d64 sampleRate, i32 channels);
 
 #define Audio_1(a) _Generic((a),                    \
     char *: Audio_load,                             \
@@ -84,7 +84,7 @@ fn Audio_setLooping(Audio *a, bool looping);
 bool Audio_getLooping(Audio *a);
 fn Audio_setSampleRate(Audio *a, d64 rate);
 d64 Audio_getSampleRate(Audio *a);
-fn Audio_setChannels(Audio *a, int channels);
-int Audio_getChannels(Audio *a);
+fn Audio_setChannels(Audio *a, i32 channels);
+i32 Audio_getChannels(Audio *a);
 
 #endif

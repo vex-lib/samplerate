@@ -7,7 +7,7 @@
 // core/audio_memory.h — the Samplerate MODULE that owns its dedicated
 // Relational Engine arena plus the per-block transient scratch.
 //
-// Every long-lived samplerate object is carved from this arena; the 16-byte
+// Every i64-lived samplerate object is carved from this arena; the 16-byte
 // self-describing header (MemoryHeader, owned by Relational Engine in
 // `nio/mem.h`) carries the TYPE_* id. Allocation is COLD only — the realtime
 // audio callback never allocates (the Zero-Allocation Audio Callback Law).

@@ -257,12 +257,12 @@ fn AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *ou
         return;
     }
     if (self == nullptr) {
-        int n = snprintf(dest, cap, "nullptr");
+        i32 n = snprintf(dest, cap, "nullptr");
         if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
-    int n = snprintf(dest, cap, "AudioStream(%s, %.1f Hz, %u ch, %.2f ms)",
+    i32 n = snprintf(dest, cap, "AudioStream(%s, %.1f Hz, %u ch, %.2f ms)",
                      (*self).running ? "running" : "stopped",
                      (*self).sampleRate, (*self).channels,
                      AudioStream_getLatencyMs(self));
@@ -279,12 +279,12 @@ fn AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bo
         return;
     }
     if (self == nullptr) {
-        int n = snprintf(dest, cap, "nullptr");
+        i32 n = snprintf(dest, cap, "nullptr");
         if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
-    int n = snprintf(dest, cap,
+    i32 n = snprintf(dest, cap,
                      "AudioStream { unit: %s, running: %s, sampleRate: %.1f, channels: %u, framesPerBlock: %u, callback: %s }",
                      (*self).unit ? "open" : "closed",
                      (*self).running ? "true" : "false",

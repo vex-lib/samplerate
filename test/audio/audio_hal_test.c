@@ -8,7 +8,7 @@
 
 #include "audio/audio_hal.h"
 
-static int g_failures = 0;
+static i32 g_failures = 0;
 
 #define CHECK(cond)                                                        \
     do {                                                                   \
@@ -26,7 +26,7 @@ static fn renderSilence(f32 *output, u32 frames, u32 channels,
     (discard) context;
 }
 
-int main() {
+i32 main() {
     AudioHalConfig defaults = AudioHalConfig();
     CHECK(defaults.sample_rate == 48000.0);
     CHECK(defaults.channels == 2u);
@@ -34,7 +34,7 @@ int main() {
     CHECK(defaults.callback == nullptr);
     CHECK(defaults.user_data == nullptr);
 
-    int renderState = 7;
+    i32 renderState = 7;
     AudioHalConfig configured = AudioHalConfig(renderSilence, &renderState);
     CHECK(configured.sample_rate == defaults.sample_rate);
     CHECK(configured.channels == defaults.channels);

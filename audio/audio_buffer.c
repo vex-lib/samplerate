@@ -279,12 +279,12 @@ fn AudioBuffer_toString(const AudioBuffer *self, char *dest, bytes cap, bool *ou
         return;
     }
     if (self == nullptr) {
-        int n = snprintf(dest, cap, "nullptr");
+        i32 n = snprintf(dest, cap, "nullptr");
         if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
-    int n = snprintf(dest, cap, "AudioBuffer(%u/%u frames, %u ch, %.1f Hz)",
+    i32 n = snprintf(dest, cap, "AudioBuffer(%u/%u frames, %u ch, %.1f Hz)",
                      (*self).frames, (*self).capacity, (*self).channels, (*self).sampleRate);
     if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
@@ -299,12 +299,12 @@ fn AudioBuffer_toStringStruct(const AudioBuffer *self, char *dest, bytes cap, bo
         return;
     }
     if (self == nullptr) {
-        int n = snprintf(dest, cap, "nullptr");
+        i32 n = snprintf(dest, cap, "nullptr");
         if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
-    int n = snprintf(dest, cap,
+    i32 n = snprintf(dest, cap,
                      "AudioBuffer { data: %p, frames: %u, capacity: %u, channels: %u, sampleRate: %.1f }",
                      (const_any) (*self).data, (*self).frames, (*self).capacity,
                      (*self).channels, (*self).sampleRate);

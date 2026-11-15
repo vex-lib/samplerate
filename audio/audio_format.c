@@ -170,12 +170,12 @@ fn AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *ou
         return;
     }
     if (self == nullptr) {
-        int n = snprintf(dest, cap, "nullptr");
+        i32 n = snprintf(dest, cap, "nullptr");
         if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
-    int n = snprintf(dest, cap, "AudioFormat(%.1f Hz, %u ch, %u frames, type=%u)",
+    i32 n = snprintf(dest, cap, "AudioFormat(%.1f Hz, %u ch, %u frames, type=%u)",
                      (*self).sampleRate, (*self).channels,
                      (*self).framesPerBlock, (*self).sampleType);
     if (outTruncated && n >= 0 && (bytes) n >= cap)
@@ -191,12 +191,12 @@ fn AudioFormat_toStringStruct(const AudioFormat *self, char *dest, bytes cap, bo
         return;
     }
     if (self == nullptr) {
-        int n = snprintf(dest, cap, "nullptr");
+        i32 n = snprintf(dest, cap, "nullptr");
         if (outTruncated && n >= 0 && (bytes) n >= cap)
             *outTruncated = true;
         return;
     }
-    int n = snprintf(dest, cap,
+    i32 n = snprintf(dest, cap,
                      "AudioFormat { sampleRate: %.1f, channels: %u, framesPerBlock: %u, sampleType: %u }",
                      (*self).sampleRate, (*self).channels,
                      (*self).framesPerBlock, (*self).sampleType);
