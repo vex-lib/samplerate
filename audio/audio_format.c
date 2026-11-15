@@ -53,12 +53,12 @@ typedef struct AudioFormat {
     u32 sampleType;
 } AudioFormat;
 
-static AudioFormat *audioFormatAlloc(void) {
+static AudioFormat *audioFormatAlloc() {
     AudioFormat *self = (AudioFormat*) AudioMemory_alloc(TYPE_AUDIO_FORMAT, sizeof(AudioFormat));
     return self;
 }
 
-AudioFormat *AudioFormat_0(void) {
+AudioFormat *AudioFormat_0() {
     AudioFormat *self = audioFormatAlloc();
     if (self == nullptr)
         return nullptr;
@@ -83,11 +83,11 @@ AudioFormat *AudioFormat_2(d64 sampleRate, u32 channels) {
     return self;
 }
 
-void AudioFormat_free(AudioFormat *self) {
+fn AudioFormat_free(AudioFormat *self) {
     AudioMemory_free(self);
 }
 
-void AudioFormat_setSampleRate(AudioFormat *self, d64 sampleRate) {
+fn AudioFormat_setSampleRate(AudioFormat *self, d64 sampleRate) {
     if (self == nullptr) {
         THROW("AudioFormat_setSampleRate: null self");
         return;
@@ -99,7 +99,7 @@ void AudioFormat_setSampleRate(AudioFormat *self, d64 sampleRate) {
     (*self).sampleRate = sampleRate;
 }
 
-void AudioFormat_setChannels(AudioFormat *self, u32 channels) {
+fn AudioFormat_setChannels(AudioFormat *self, u32 channels) {
     if (self == nullptr) {
         THROW("AudioFormat_setChannels: null self");
         return;
@@ -111,7 +111,7 @@ void AudioFormat_setChannels(AudioFormat *self, u32 channels) {
     (*self).channels = channels;
 }
 
-void AudioFormat_setFramesPerBlock(AudioFormat *self, u32 frames) {
+fn AudioFormat_setFramesPerBlock(AudioFormat *self, u32 frames) {
     if (self == nullptr) {
         THROW("AudioFormat_setFramesPerBlock: null self");
         return;
@@ -123,7 +123,7 @@ void AudioFormat_setFramesPerBlock(AudioFormat *self, u32 frames) {
     (*self).framesPerBlock = frames;
 }
 
-void AudioFormat_setSampleType(AudioFormat *self, u32 sampleType) {
+fn AudioFormat_setSampleType(AudioFormat *self, u32 sampleType) {
     if (self == nullptr) {
         THROW("AudioFormat_setSampleType: null self");
         return;
@@ -162,7 +162,7 @@ bool AudioFormat_isValid(const AudioFormat *self) {
            (*self).sampleType != AUDIO_SAMPLE_UNKNOWN;
 }
 
-void AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated) {
+fn AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated) {
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {
@@ -183,7 +183,7 @@ void AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *
         *outTruncated = true;
 }
 
-void AudioFormat_toStringStruct(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated) {
+fn AudioFormat_toStringStruct(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated) {
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {

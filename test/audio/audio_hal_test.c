@@ -17,15 +17,15 @@ static int g_failures = 0;
         }                                                                  \
     } while (0)
 
-static void renderSilence(f32 *output, u32 frames, u32 channels,
-                          void *context) {
-    (void) output;
-    (void) frames;
-    (void) channels;
-    (void) context;
+static fn renderSilence(f32 *output, u32 frames, u32 channels,
+                          any context) {
+    (discard) output;
+    (discard) frames;
+    (discard) channels;
+    (discard) context;
 }
 
-int main(void) {
+int main() {
     AudioHalConfig defaults = AudioHalConfig();
     CHECK(defaults.sample_rate == 48000.0);
     CHECK(defaults.channels == 2u);

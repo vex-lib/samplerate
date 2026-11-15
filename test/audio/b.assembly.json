@@ -15,8 +15,8 @@
   "build": {
     "entry": "audio_hal_test.c",
     "sources": ["audio_hal_test.c"],
-    "includes": ["vexspoke", "re", "lifetime"],
-    "dependencies": ["lifetime", "re", "vexspoke"],
+    "includes": ["samplerate", "vexspoke", "re", "lifetime"],
+    "dependencies": ["samplerate", "lifetime", "re", "vexspoke"],
     "defines": [],
     "options": [],
     "link": "executable"

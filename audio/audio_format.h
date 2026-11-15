@@ -1,11 +1,7 @@
 #ifndef AUDIO_AUDIO_FORMAT_H
 #define AUDIO_AUDIO_FORMAT_H
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
-
-#include "util/constructor.h"
+#include "vex.h"
 
 // audio/audio_format.h — the value class describing a PCM stream shape:
 // sample rate, channel count, frames per render block, and sample type. It is
@@ -38,21 +34,21 @@
 
 typedef struct AudioFormat AudioFormat;
 
-AudioFormat *AudioFormat_0(void);
+AudioFormat *AudioFormat_0();
 AudioFormat *AudioFormat_1(d64 sampleRate);
 AudioFormat *AudioFormat_2(d64 sampleRate, u32 channels);
 #define AudioFormat(...) CONSTRUCTOR_DISPATCH(AudioFormat, __VA_ARGS__)
 
 // Release the block back to the Samplerate arena (null-safe).
-void AudioFormat_free(AudioFormat *self);
+fn AudioFormat_free(AudioFormat *self);
 
 // Setters validate at least as strictly as the getters: an out-of-range value is
 // rejected (state preserved) and a cold rejection is reported with THROW. The
 // getters are null-safe and return safe zero defaults.
-void AudioFormat_setSampleRate(AudioFormat *self, d64 sampleRate);
-void AudioFormat_setChannels(AudioFormat *self, u32 channels);
-void AudioFormat_setFramesPerBlock(AudioFormat *self, u32 frames);
-void AudioFormat_setSampleType(AudioFormat *self, u32 sampleType);
+fn AudioFormat_setSampleRate(AudioFormat *self, d64 sampleRate);
+fn AudioFormat_setChannels(AudioFormat *self, u32 channels);
+fn AudioFormat_setFramesPerBlock(AudioFormat *self, u32 frames);
+fn AudioFormat_setSampleType(AudioFormat *self, u32 sampleType);
 
 d64 AudioFormat_getSampleRate(const AudioFormat *self);
 u32 AudioFormat_getChannels(const AudioFormat *self);
@@ -64,7 +60,7 @@ bool AudioFormat_isValid(const AudioFormat *self);
 
 // Bounded string projections (the toString Law). Cold path only; a null self
 // writes "nullptr". toStringStruct mirrors the fields one layer deep.
-void AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated);
-void AudioFormat_toStringStruct(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated);
+fn AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated);
+fn AudioFormat_toStringStruct(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated);
 
 #endif // AUDIO_AUDIO_FORMAT_H

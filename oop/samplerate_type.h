@@ -1,8 +1,7 @@
 #ifndef OOP_TYPE_H
 #define OOP_TYPE_H
 
-#include <stdint.h>
-
+#include "vex.h"
 #include "type/re_type.h"
 
 // oop/type.h — samplerate's OWN class registry (the One Type Registry Law).

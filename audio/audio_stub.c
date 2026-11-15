@@ -31,13 +31,13 @@
  * FUNCTION REGISTRY:
  * ----------------------------------------------------------------------------
  * Constructors:
- *   - Audio_init(void)
- *   - AudioVoice(void)
- *   - Audio_0(void)
+ *   - Audio_init()
+ *   - AudioVoice()
+ *   - Audio_0()
  *   - Audio_2(sampleRate, channels)
  *
  * Core Functions:
- *   - Audio_shutdown(void)
+ *   - Audio_shutdown()
  *   - AudioClip_load(path)
  *   - AudioClip_tone(frequencyHz, seconds)
  *   - AudioClip_free(clip)
@@ -65,7 +65,7 @@
  *   - Audio_setChannels(a, channels)
  *
  * Getters:
- *   - Audio_isReady(void)
+ *   - Audio_isReady()
  *   - AudioVoice_isPlaying(voice)
  *   - Audio_isPlaying(a)
  *   - Audio_getGain(a)
@@ -80,171 +80,171 @@
 ;;INCOMPLETE // Windows/X11 audio backends land here; until then this platform
 ;;INCOMPLETE // is silent by design.
 
-bool Audio_init(void) {
+bool Audio_init() {
     return false;
 }
 
-void Audio_shutdown(void) {
+fn Audio_shutdown() {
 }
 
-bool Audio_isReady(void) {
+bool Audio_isReady() {
     return false;
 }
 
 AudioClip *AudioClip_load(const char *path) {
-    (void)path;
+    (discard) path;
     return nullptr;
 }
 
 AudioClip *AudioClip_tone(f32 frequencyHz, f32 seconds) {
-    (void)frequencyHz;
-    (void)seconds;
+    (discard) frequencyHz;
+    (discard) seconds;
     return nullptr;
 }
 
-void AudioClip_free(AudioClip *clip) {
-    (void)clip;
+fn AudioClip_free(AudioClip *clip) {
+    (discard) clip;
 }
 
 f32 AudioClip_seconds(AudioClip *clip) {
-    (void)clip;
+    (discard) clip;
     return 0.0f;
 }
 
-AudioVoice *AudioVoice_0(void) {
+AudioVoice *AudioVoice_0() {
     return nullptr;
 }
 
-void AudioVoice_free(AudioVoice *voice) {
-    (void)voice;
+fn AudioVoice_free(AudioVoice *voice) {
+    (discard) voice;
 }
 
-void AudioVoice_setClip(AudioVoice *voice, AudioClip *clip) {
-    (void)voice;
-    (void)clip;
+fn AudioVoice_setClip(AudioVoice *voice, AudioClip *clip) {
+    (discard) voice;
+    (discard) clip;
 }
 
-void AudioVoice_setGain(AudioVoice *voice, f32 gain) {
-    (void)voice;
-    (void)gain;
+fn AudioVoice_setGain(AudioVoice *voice, f32 gain) {
+    (discard) voice;
+    (discard) gain;
 }
 
-void AudioVoice_setPitch(AudioVoice *voice, f32 pitch) {
-    (void)voice;
-    (void)pitch;
+fn AudioVoice_setPitch(AudioVoice *voice, f32 pitch) {
+    (discard) voice;
+    (discard) pitch;
 }
 
-void AudioVoice_setLooping(AudioVoice *voice, bool looping) {
-    (void)voice;
-    (void)looping;
+fn AudioVoice_setLooping(AudioVoice *voice, bool looping) {
+    (discard) voice;
+    (discard) looping;
 }
 
-void AudioVoice_play(AudioVoice *voice) {
-    (void)voice;
+fn AudioVoice_play(AudioVoice *voice) {
+    (discard) voice;
 }
 
-void AudioVoice_pause(AudioVoice *voice) {
-    (void)voice;
+fn AudioVoice_pause(AudioVoice *voice) {
+    (discard) voice;
 }
 
-void AudioVoice_stop(AudioVoice *voice) {
-    (void)voice;
+fn AudioVoice_stop(AudioVoice *voice) {
+    (discard) voice;
 }
 
 bool AudioVoice_isPlaying(AudioVoice *voice) {
-    (void)voice;
+    (discard) voice;
     return false;
 }
 
 // --- Audio: one-handle class (silent backend) ---
 
-Audio *Audio_0(void) {
+Audio *Audio_0() {
     return nullptr;
 }
 
 Audio *Audio_load(const char *path) {
-    (void)path;
+    (discard) path;
     return nullptr;
 }
 
 Audio *Audio_withRate(d64 sampleRate) {
-    (void)sampleRate;
+    (discard) sampleRate;
     return nullptr;
 }
 
 Audio *Audio_2(d64 sampleRate, int channels) {
-    (void)sampleRate;
-    (void)channels;
+    (discard) sampleRate;
+    (discard) channels;
     return nullptr;
 }
 
-void Audio_play(Audio *a) {
-    (void)a;
+fn Audio_play(Audio *a) {
+    (discard) a;
 }
 
-void Audio_pause(Audio *a) {
-    (void)a;
+fn Audio_pause(Audio *a) {
+    (discard) a;
 }
 
-void Audio_stop(Audio *a) {
-    (void)a;
+fn Audio_stop(Audio *a) {
+    (discard) a;
 }
 
 bool Audio_isPlaying(Audio *a) {
-    (void)a;
+    (discard) a;
     return false;
 }
 
-void Audio_setGain(Audio *a, f32 gain) {
-    (void)a;
-    (void)gain;
+fn Audio_setGain(Audio *a, f32 gain) {
+    (discard) a;
+    (discard) gain;
 }
 
 f32 Audio_getGain(Audio *a) {
-    (void)a;
+    (discard) a;
     return 0.0f;
 }
 
-void Audio_setPitch(Audio *a, f32 pitch) {
-    (void)a;
-    (void)pitch;
+fn Audio_setPitch(Audio *a, f32 pitch) {
+    (discard) a;
+    (discard) pitch;
 }
 
 f32 Audio_getPitch(Audio *a) {
-    (void)a;
+    (discard) a;
     return 1.0f;
 }
 
-void Audio_setLooping(Audio *a, bool looping) {
-    (void)a;
-    (void)looping;
+fn Audio_setLooping(Audio *a, bool looping) {
+    (discard) a;
+    (discard) looping;
 }
 
 bool Audio_getLooping(Audio *a) {
-    (void)a;
+    (discard) a;
     return false;
 }
 
-void Audio_setSampleRate(Audio *a, d64 rate) {
-    (void)a;
-    (void)rate;
+fn Audio_setSampleRate(Audio *a, d64 rate) {
+    (discard) a;
+    (discard) rate;
 }
 
 d64 Audio_getSampleRate(Audio *a) {
-    (void)a;
+    (discard) a;
     return 0.0;
 }
 
-void Audio_setChannels(Audio *a, int channels) {
-    (void)a;
-    (void)channels;
+fn Audio_setChannels(Audio *a, int channels) {
+    (discard) a;
+    (discard) channels;
 }
 
 int Audio_getChannels(Audio *a) {
-    (void)a;
+    (discard) a;
     return 0;
 }
 
-void Audio_free(Audio *a) {
-    (void)a;
+fn Audio_free(Audio *a) {
+    (discard) a;
 }

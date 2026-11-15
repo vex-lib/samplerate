@@ -1,12 +1,8 @@
 #ifndef STREAM_AUDIO_STREAM_H
 #define STREAM_AUDIO_STREAM_H
 
-#include <stdbool.h>
-#include <stddef.h>
-#include <stdint.h>
 
-#include "c23/constructor.h"
-#include "annotation/annotation.h"
+
 
 // stream/audio_stream.h — the native output stream: the audio counterpart to
 // graphvex's presentation backend. The contract is identical on every platform;
@@ -25,20 +21,22 @@
 
 // One realtime render callback. Called by the OS audio thread; fills
 // interleavedOutput with frames * channels f32s (zero-fill for silence).
-typedef void (*AudioRenderCallback)(f32 *interleavedOutput, u32 frames,
-                                    u32 channels, void *userData);
+typedef fn (*AudioRenderCallback)(f32 *interleavedOutput, u32 frames,
+                                    u32 channels, any userData);
 
 typedef struct AudioStreamConfig {
     d64 sampleRate;        // 0 = device default
     u32 channels;        // 0 = device default
     u32 framesPerBlock;  // 0 = device default
     AudioRenderCallback callback;
+#include "vex.h"
+
     ;;WHAT("caller render context")
-    void *userData;
+    any userData;
 } AudioStreamConfig;
 
 // Zeroed config: every field at its "device default" sentinel, no callback.
-static inline AudioStreamConfig AudioStreamConfig_default(void) {
+static inline AudioStreamConfig AudioStreamConfig_default() {
     AudioStreamConfig c;
     c.sampleRate = 0.0;
     c.channels = 0u;
@@ -50,12 +48,12 @@ static inline AudioStreamConfig AudioStreamConfig_default(void) {
 
 typedef struct AudioStream AudioStream;
 
-AudioStream *AudioStream_0(void);
+AudioStream *AudioStream_0();
 AudioStream *AudioStream_1(const AudioStreamConfig *config);
 #define AudioStream(...) CONSTRUCTOR_DISPATCH(AudioStream, __VA_ARGS__)
 
 // Release the stream. Stops it first when running; null-safe.
-void AudioStream_free(AudioStream *self);
+fn AudioStream_free(AudioStream *self);
 
 // Bind the platform output unit and prepare it (cold). False on rejection; the
 // shell stays usable for a retry after the config is fixed.
@@ -73,7 +71,7 @@ u32 AudioStream_getFramesPerBlock(const AudioStream *self);
 d64 AudioStream_getLatencyMs(const AudioStream *self);
 
 // Bounded string projections (the toString Law). Cold path only.
-void AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated);
-void AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated);
+fn AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated);
+fn AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated);
 
 #endif // STREAM_AUDIO_STREAM_H

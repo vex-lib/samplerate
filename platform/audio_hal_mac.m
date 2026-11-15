@@ -2,10 +2,11 @@
 
 #import <AudioToolbox/AudioToolbox.h>
 #import <CoreAudio/CoreAudio.h>
+
+#include "vex.h"
 #include <stdlib.h>
 #include <string.h>
 
-#include "annotation/annotation.h"
 
 ;;DEFINITION
 /**
@@ -65,10 +66,10 @@ struct AudioHal {
     u32 channels;
     u32 buffer_frames;
     AudioHalRenderCallback callback;
-    void *user_data;
+    any user_data;
 };
 
-AudioHalConfig AudioHalConfig_0(void) {
+AudioHalConfig AudioHalConfig_0() {
     AudioHalConfig cfg;
     cfg.sample_rate = 48000.0;
     cfg.channels = 2;
@@ -82,7 +83,7 @@ AudioHalConfig AudioHalConfig_1(AudioHalRenderCallback callback) {
     return AudioHalConfig_2(callback, nullptr);
 }
 
-AudioHalConfig AudioHalConfig_2(AudioHalRenderCallback callback, void *user_data) {
+AudioHalConfig AudioHalConfig_2(AudioHalRenderCallback callback, any user_data) {
     AudioHalConfig cfg = AudioHalConfig_0();
     cfg.callback = callback;
     cfg.user_data = user_data;
@@ -108,16 +109,16 @@ bool AudioHalConfig_set_buffer_frames(AudioHalConfig *config, u32 buffer_frames)
 }
 
 static OSStatus audio_hal_render_proc(
-    void *inRefCon,
+    any inRefCon,
     AudioUnitRenderActionFlags *ioActionFlags,
     const AudioTimeStamp *inTimeStamp,
     UInt32 inBusNumber,
     UInt32 inNumberFrames,
     AudioBufferList *ioData
 ) {
-    (void) ioActionFlags;
-    (void) inTimeStamp;
-    (void) inBusNumber;
+    (discard) ioActionFlags;
+    (discard) inTimeStamp;
+    (discard) inBusNumber;
 
     AudioHal *hal = (AudioHal*) inRefCon;
     if (!hal || !ioData || (*ioData).mNumberBuffers == 0) {
@@ -137,7 +138,7 @@ static OSStatus audio_hal_render_proc(
     return noErr;
 }
 
-AudioHal *AudioHal_0(void) {
+AudioHal *AudioHal_0() {
     return AudioHal_1(nullptr);
 }
 
@@ -205,7 +206,7 @@ AudioHal *AudioHal_1(const AudioHalConfig *config) {
 
     AURenderCallbackStruct cb_struct;
     cb_struct.inputProc = audio_hal_render_proc;
-    cb_struct.inputProcRefCon = (void*) hal;
+    cb_struct.inputProcRefCon = (any) hal;
 
     err = AudioUnitSetProperty(
         au,
@@ -263,7 +264,7 @@ bool AudioHal_stop(AudioHal *hal) {
     return false;
 }
 
-void AudioHal_destroy(AudioHal *hal) {
+fn AudioHal_destroy(AudioHal *hal) {
     if (!hal) {
         return;
     }

@@ -36,61 +36,61 @@
 
 ;;INCOMPLETE // Windows WASAPI and Linux ALSA backends land here.
 
-AudioStream *AudioStream_0(void) {
+AudioStream *AudioStream_0() {
     return nullptr;
 }
 
 AudioStream *AudioStream_1(const AudioStreamConfig *config) {
-    (void) config;
+    (discard) config;
     return nullptr;
 }
 
 bool AudioStream_open(AudioStream *self) {
-    (void) self;
+    (discard) self;
     return false;
 }
 
 bool AudioStream_start(AudioStream *self) {
-    (void) self;
+    (discard) self;
     return false;
 }
 
 bool AudioStream_stop(AudioStream *self) {
-    (void) self;
+    (discard) self;
     return false;
 }
 
 bool AudioStream_isRunning(const AudioStream *self) {
-    (void) self;
+    (discard) self;
     return false;
 }
 
-void AudioStream_free(AudioStream *self) {
-    (void) self;
+fn AudioStream_free(AudioStream *self) {
+    (discard) self;
 }
 
 d64 AudioStream_getSampleRate(const AudioStream *self) {
-    (void) self;
+    (discard) self;
     return 0.0;
 }
 
 u32 AudioStream_getChannels(const AudioStream *self) {
-    (void) self;
+    (discard) self;
     return 0u;
 }
 
 u32 AudioStream_getFramesPerBlock(const AudioStream *self) {
-    (void) self;
+    (discard) self;
     return 0u;
 }
 
 d64 AudioStream_getLatencyMs(const AudioStream *self) {
-    (void) self;
+    (discard) self;
     return 0.0;
 }
 
-void AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
-    (void) self;
+fn AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
+    (discard) self;
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {
@@ -98,11 +98,11 @@ void AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *
             *outTruncated = true;
         return;
     }
-    (void) snprintf(dest, cap, "AudioStream(unavailable)");
+    (discard) snprintf(dest, cap, "AudioStream(unavailable)");
 }
 
-void AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
-    (void) self;
+fn AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
+    (discard) self;
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {
@@ -110,5 +110,5 @@ void AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, 
             *outTruncated = true;
         return;
     }
-    (void) snprintf(dest, cap, "AudioStream { unavailable on this host }");
+    (discard) snprintf(dest, cap, "AudioStream { unavailable on this host }");
 }

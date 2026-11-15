@@ -46,7 +46,7 @@
  *   u32 framesPerBlock;            // requested render quantum (frames)
  *   AudioRenderCallback callback;       // caller's realtime pull
  *   ;;WHAT("caller render context")
- *   void *userData;                     // passed back to callback
+ *   any userData;                     // passed back to callback
  *
  * PUBLIC SURFACE (stream/audio_stream.h):
  *   Constructors: AudioStream_0(), AudioStream_1(config)
@@ -67,18 +67,18 @@ typedef struct AudioStream {
     u32 framesPerBlock;
     AudioRenderCallback callback;
     ;;WHAT("caller render context")
-    void *userData;
+    any userData;
 } AudioStream;
 
-static OSStatus audioStreamRender(void *inRefCon,
+static OSStatus audioStreamRender(any inRefCon,
                                   AudioUnitRenderActionFlags *ioActionFlags,
                                   const AudioTimeStamp *inTimeStamp,
                                   UInt32 inBusNumber,
                                   UInt32 inNumberFrames,
                                   AudioBufferList *ioData) {
-    (void) ioActionFlags;
-    (void) inTimeStamp;
-    (void) inBusNumber;
+    (discard) ioActionFlags;
+    (discard) inTimeStamp;
+    (discard) inBusNumber;
 
     AudioStream *self = (AudioStream*) inRefCon;
     if (self == nullptr || ioData == nullptr || (*ioData).mNumberBuffers == 0u)
@@ -111,7 +111,7 @@ AudioStream *AudioStream_1(const AudioStreamConfig *config) {
     return self;
 }
 
-AudioStream *AudioStream_0(void) {
+AudioStream *AudioStream_0() {
     return AudioStream_1(nullptr);
 }
 
@@ -164,7 +164,7 @@ bool AudioStream_open(AudioStream *self) {
 
     AURenderCallbackStruct cb;
     cb.inputProc = audioStreamRender;
-    cb.inputProcRefCon = (void*) self;
+    cb.inputProcRefCon = (any) self;
     err = AudioUnitSetProperty(au, kAudioUnitProperty_SetRenderCallback,
                                kAudioUnitScope_Input, 0, &cb, sizeof(cb));
     if (err != noErr) {
@@ -218,7 +218,7 @@ bool AudioStream_isRunning(const AudioStream *self) {
     return self ? (*self).running : false;
 }
 
-void AudioStream_free(AudioStream *self) {
+fn AudioStream_free(AudioStream *self) {
     if (self == nullptr)
         return;
     if ((*self).running)
@@ -249,7 +249,7 @@ d64 AudioStream_getLatencyMs(const AudioStream *self) {
     return (1000.0 * (d64) (*self).framesPerBlock) / (*self).sampleRate;
 }
 
-void AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
+fn AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {
@@ -271,7 +271,7 @@ void AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *
         *outTruncated = true;
 }
 
-void AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
+fn AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
     if (outTruncated)
         *outTruncated = false;
     if (dest == nullptr || cap == 0u) {

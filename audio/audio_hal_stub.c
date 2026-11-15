@@ -33,7 +33,7 @@
  *     u32 channels;              // 1 = mono, 2 = stereo
  *     u32 buffer_frames;         // e.g. 128, 256, 512
  *     AudioHalRenderCallback callback;// Real-time pull render callback
- *     void *user_data;
+ *     any user_data;
  *   }
  *   AudioHal {                        // opaque; defined locally in this .c
  *     bool is_running;                // never set true by the stub
@@ -66,7 +66,7 @@ struct AudioHal {
     bool is_running;
 };
 
-AudioHalConfig AudioHalConfig_0(void) {
+AudioHalConfig AudioHalConfig_0() {
     AudioHalConfig cfg;
     cfg.sample_rate = 48000.0;
     cfg.channels = 2;
@@ -80,7 +80,7 @@ AudioHalConfig AudioHalConfig_1(AudioHalRenderCallback callback) {
     return AudioHalConfig_2(callback, nullptr);
 }
 
-AudioHalConfig AudioHalConfig_2(AudioHalRenderCallback callback, void *user_data) {
+AudioHalConfig AudioHalConfig_2(AudioHalRenderCallback callback, any user_data) {
     AudioHalConfig cfg = AudioHalConfig_0();
     cfg.callback = callback;
     cfg.user_data = user_data;
@@ -105,52 +105,52 @@ bool AudioHalConfig_set_buffer_frames(AudioHalConfig *config, u32 buffer_frames)
     return true;
 }
 
-AudioHal *AudioHal_0(void) {
+AudioHal *AudioHal_0() {
     return AudioHal_1(nullptr);
 }
 
 AudioHal *AudioHal_1(const AudioHalConfig *config) {
-    (void) config;
+    (discard) config;
     return nullptr;
 }
 
 bool AudioHal_start(AudioHal *hal) {
-    (void) hal;
+    (discard) hal;
     return false;
 }
 
 bool AudioHal_stop(AudioHal *hal) {
-    (void) hal;
+    (discard) hal;
     return false;
 }
 
-void AudioHal_destroy(AudioHal *hal) {
+fn AudioHal_destroy(AudioHal *hal) {
     if (hal) {
         free(hal);
     }
 }
 
 bool AudioHal_is_running(const AudioHal *hal) {
-    (void) hal;
+    (discard) hal;
     return false;
 }
 
 d64 AudioHal_get_sample_rate(const AudioHal *hal) {
-    (void) hal;
+    (discard) hal;
     return 0.0;
 }
 
 u32 AudioHal_get_channels(const AudioHal *hal) {
-    (void) hal;
+    (discard) hal;
     return 0;
 }
 
 u32 AudioHal_get_buffer_frames(const AudioHal *hal) {
-    (void) hal;
+    (discard) hal;
     return 0;
 }
 
 d64 AudioHal_get_latency_ms(const AudioHal *hal) {
-    (void) hal;
+    (discard) hal;
     return 0.0;
 }
