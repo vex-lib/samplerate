@@ -517,12 +517,28 @@ bool Audio_isPlaying(Audio *a) {
     return [(AVAudioPlayerNode*) (*a).node isPlaying];
 }
 
+;;GETTER
+static AVAudioPlayerNode *Audio_node(Audio *a) {
+    return a ? (*a).node : nullptr;
+}
+
+;;SETTER
+static fn AVAudioPlayerNode_setVolume(AVAudioPlayerNode *node, f32 volume) {
+    if (node)
+        [node setVolume:volume];
+}
+
+;;SETTER
+static fn AVAudioPlayerNode_setRate(AVAudioPlayerNode *node, f32 rate) {
+    if (node)
+        [node setRate:rate];
+}
+
 fn Audio_setGain(Audio *a, f32 gain) {
     if (!a)
         return;
     (*a).gain = gain;
-    if ((*a).node)
-        (*a).node.volume = gain;
+    AVAudioPlayerNode_setVolume(Audio_node(a), gain);
 }
 
 f32 Audio_getGain(Audio *a) {
@@ -533,8 +549,7 @@ fn Audio_setPitch(Audio *a, f32 pitch) {
     if (!a || pitch <= 0.0f)
         return;
     (*a).pitch = pitch;
-    if ((*a).node)
-        (*a).node.rate = pitch;
+    AVAudioPlayerNode_setRate(Audio_node(a), pitch);
 }
 
 f32 Audio_getPitch(Audio *a) {
