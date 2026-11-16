@@ -132,6 +132,26 @@ typedef struct AudioVoice {
     bool looping;
 } AudioVoice;
 
+;;GETTER
+static inline AVAudioPCMBuffer *AudioClip_buffer(const AudioClip *self) { return (*self).buffer; }
+;;SETTER
+static inline fn AudioClip_setBuffer(AudioClip *self, AVAudioPCMBuffer *buffer) { (*self).buffer = buffer; }
+;;SETTER
+static inline fn AudioClip_setSeconds(AudioClip *self, f32 seconds) { (*self).seconds = seconds; }
+
+;;GETTER
+static inline AVAudioPlayerNode *AudioVoice_node(const AudioVoice *self) { return (*self).node; }
+;;SETTER
+static inline fn AudioVoice_setNode(AudioVoice *self, AVAudioPlayerNode *node) { (*self).node = node; }
+;;GETTER
+static inline AudioClip *AudioVoice_clip(const AudioVoice *self) { return (*self).clip; }
+;;GETTER
+static inline bool AudioVoice_active(const AudioVoice *self) { return (*self).active; }
+;;SETTER
+static inline fn AudioVoice_setActive(AudioVoice *self, bool active) { (*self).active = active; }
+;;GETTER
+static inline bool AudioVoice_looping(const AudioVoice *self) { return (*self).looping; }
+
 // The engine refuses to start with zero attached nodes, so init only
 // constructs it; the first voice attachment flips it live (ensureRunning).
 static AVAudioEngine *sharedEngine() {
@@ -175,8 +195,8 @@ bool Audio_isReady() {
 static AudioClip *clipAlloc(f32 seconds) {
     AudioClip *clip = (AudioClip*) Memory_alloc(TYPE_AUDIO_CLIP_SINGLETON, sizeof(AudioClip));
     if (clip) {
-        (*clip).buffer = nullptr;
-        (*clip).seconds = seconds;
+        AudioClip_setBuffer(clip, nullptr);
+        AudioClip_setSeconds(clip, seconds);
     }
     return clip;
 }
@@ -207,7 +227,7 @@ AudioClip *AudioClip_load(const char *path) {
         AudioClip *clip = clipAlloc((f32)secs);
         if (!clip)
             return nullptr;
-        (*clip).buffer = buf;
+        AudioClip_setBuffer(clip, buf);
         return clip;
     }
 }
@@ -240,7 +260,7 @@ AudioClip *AudioClip_tone(f32 frequencyHz, f32 seconds) {
         AudioClip *clip = clipAlloc(seconds);
         if (!clip)
             return nullptr;
-        (*clip).buffer = buf;
+        AudioClip_setBuffer(clip, buf);
         return clip;
     }
 }
@@ -248,10 +268,11 @@ AudioClip *AudioClip_tone(f32 frequencyHz, f32 seconds) {
 fn AudioClip_free(AudioClip *clip) {
     if (!clip)
         return;
-    (*clip).buffer = nullptr;
+    AudioClip_setBuffer(clip, nullptr);
     Memory_free(clip);
 }
 
+;;GETTER
 f32 AudioClip_seconds(AudioClip *clip) {
     return clip ? (*clip).seconds : 0.0f;
 }
@@ -297,22 +318,23 @@ AudioVoice *AudioVoice_0() {
         AudioVoice *v = (AudioVoice*) Memory_alloc(TYPE_AUDIO_VOICE_SINGLETON, sizeof(AudioVoice));
         if (!v)
             return nullptr;
-        (*v).node = [[AVAudioPlayerNode alloc] init];
-        if (!(*v).node) {
+        AVAudioPlayerNode *node = [[AVAudioPlayerNode alloc] init];
+        if (!node) {
             Memory_free(v);
             return nullptr;
         }
-        [s_engine attachNode:(*v).node];
+        AudioVoice_setNode(v, node);
+        [s_engine attachNode:node];
         AVAudioFormat *out = [[s_engine outputNode] outputFormatForBus:0];
-        audioConnect(s_engine, (*v).node, [s_engine mainMixerNode], out);
+        audioConnect(s_engine, node, [s_engine mainMixerNode], out);
         if (!ensureRunning()) {
-            [s_engine detachNode:(*v).node];
+            [s_engine detachNode:node];
             Memory_free(v);
             return nullptr;
         }
-        (*v).clip = nullptr;
-        (*v).active = false;
-        (*v).looping = false;
+        AudioVoice_setClip(v, nullptr);
+        AudioVoice_setActive(v, false);
+        AudioVoice_setLooping(v, false);
         return v;
     }
 }
@@ -321,10 +343,11 @@ fn AudioVoice_free(AudioVoice *voice) {
     if (!voice)
         return;
     @autoreleasepool {
-        [(*voice).node stop];
-        [s_engine detachNode:(*voice).node];
+        AVAudioPlayerNode *node = AudioVoice_node(voice);
+        [node stop];
+        [s_engine detachNode:node];
     }
-    (*voice).node = nullptr;
+    AudioVoice_setNode(voice, nullptr);
     Memory_free(voice);
 }
 
@@ -337,13 +360,13 @@ fn AudioVoice_setClip(AudioVoice *voice, AudioClip *clip) {
 fn AudioVoice_setGain(AudioVoice *voice, f32 gain) {
     if (!voice)
         return;
-    [(*voice).node setVolume:gain];
+    [AudioVoice_node(voice) setVolume:gain];
 }
 
 fn AudioVoice_setPitch(AudioVoice *voice, f32 pitch) {
     if (!voice || pitch <= 0.0f)
         return;
-    [(*voice).node setRate:pitch];
+    [AudioVoice_node(voice) setRate:pitch];
 }
 
 fn AudioVoice_setLooping(AudioVoice *voice, bool looping) {
@@ -353,38 +376,40 @@ fn AudioVoice_setLooping(AudioVoice *voice, bool looping) {
 }
 
 fn AudioVoice_play(AudioVoice *voice) {
-    if (!voice || !(*voice).clip)
+    AudioClip *clip = voice ? AudioVoice_clip(voice) : nullptr;
+    if (!voice || !clip)
         return;
     @autoreleasepool {
-        AudioClip *clip = (*voice).clip;
-        AVAudioPCMBuffer *buf = (*clip).buffer;
-        AVAudioPlayerNodeBufferOptions opts = (*voice).looping
+        AVAudioPCMBuffer *buf = AudioClip_buffer(clip);
+        AVAudioPlayerNode *node = AudioVoice_node(voice);
+        AVAudioPlayerNodeBufferOptions opts = AudioVoice_looping(voice)
             ? AVAudioPlayerNodeBufferLoops
             : AVAudioPlayerNodeBufferInterrupts;
-        [(*voice).node scheduleBuffer:buf atTime:nil options:opts completionHandler:nil];
-        if (!audioNodePlay((*voice).node))
+        [node scheduleBuffer:buf atTime:nil options:opts completionHandler:nil];
+        if (!audioNodePlay(node))
             return;
-        (*voice).active = true;
+        AudioVoice_setActive(voice, true);
     }
 }
 
 fn AudioVoice_pause(AudioVoice *voice) {
     if (!voice)
         return;
-    [(*voice).node pause];
+    [AudioVoice_node(voice) pause];
 }
 
 fn AudioVoice_stop(AudioVoice *voice) {
     if (!voice)
         return;
-    [(*voice).node stop];
-    (*voice).active = false;
+    [AudioVoice_node(voice) stop];
+    AudioVoice_setActive(voice, false);
 }
 
 bool AudioVoice_isPlaying(AudioVoice *voice) {
-    if (!voice || !(*voice).active)
+    if (!voice || !AudioVoice_active(voice))
         return false;
-    return (*voice).node != nullptr && [(AVAudioPlayerNode*) (*voice).node isPlaying];
+    AVAudioPlayerNode *node = AudioVoice_node(voice);
+    return node != nullptr && [(AVAudioPlayerNode*) node isPlaying];
 }
 
 // --- Audio: one-handle class -------------------------------------------------
@@ -400,15 +425,30 @@ typedef struct Audio {
     i32 channels;
 } Audio;
 
+;;GETTER
+static inline AVAudioPCMBuffer *Audio_buffer(const Audio *self) { return (*self).buffer; }
+;;SETTER
+static inline fn Audio_setBuffer(Audio *self, AVAudioPCMBuffer *buffer) { (*self).buffer = buffer; }
+;;SETTER
+static inline fn Audio_setNode(Audio *self, AVAudioPlayerNode *node) { (*self).node = node; }
+;;GETTER
+static inline bool Audio_active(const Audio *self) { return (*self).active; }
+;;SETTER
+static inline fn Audio_setActive(Audio *self, bool active) { (*self).active = active; }
+;;SETTER
+static inline fn Audio_setGainField(Audio *self, f32 gain) { (*self).gain = gain; }
+;;SETTER
+static inline fn Audio_setPitchField(Audio *self, f32 pitch) { (*self).pitch = pitch; }
+
 static fn audioInitFields(Audio *a, d64 rate, i32 channels) {
-    (*a).buffer = nullptr;
-    (*a).node = nullptr;
-    (*a).active = false;
-    (*a).looping = false;
-    (*a).gain = 1.0f;
-    (*a).pitch = 1.0f;
-    (*a).rate = rate > 0.0 ? rate : 44100.0;
-    (*a).channels = (channels == AUDIO_MONO || channels == AUDIO_STEREO) ? channels : AUDIO_STEREO;
+    Audio_setBuffer(a, nullptr);
+    Audio_setNode(a, nullptr);
+    Audio_setActive(a, false);
+    Audio_setLooping(a, false);
+    Audio_setGainField(a, 1.0f);
+    Audio_setPitchField(a, 1.0f);
+    Audio_setSampleRate(a, rate > 0.0 ? rate : 44100.0);
+    Audio_setChannels(a, (channels == AUDIO_MONO || channels == AUDIO_STEREO) ? channels : AUDIO_STEREO);
 }
 
 static bool audioWireUp(Audio *a) {
@@ -422,7 +462,7 @@ static bool audioWireUp(Audio *a) {
         [s_engine detachNode:node];
         return false;
     }
-    (*a).node = node;
+    Audio_setNode(a, node);
     return true;
 }
 
@@ -441,14 +481,14 @@ Audio *Audio_0() {
 Audio *Audio_withRate(d64 sampleRate) {
     Audio *a = Audio_0();
     if (a)
-        (*a).rate = sampleRate > 0.0 ? sampleRate : 44100.0;
+        Audio_setSampleRate(a, sampleRate > 0.0 ? sampleRate : 44100.0);
     return a;
 }
 
 Audio *Audio_2(d64 sampleRate, i32 channels) {
     Audio *a = Audio_withRate(sampleRate);
     if (a && (channels == AUDIO_MONO || channels == AUDIO_STEREO))
-        (*a).channels = channels;
+        Audio_setChannels(a, channels);
     return a;
 }
 
@@ -476,9 +516,9 @@ Audio *Audio_load(const char *path) {
         Audio *a = Audio_0();
         if (!a)
             return nullptr;
-        (*a).buffer = buf;
-        (*a).rate = format.sampleRate;
-        (*a).channels = (i32)format.channelCount;
+        Audio_setBuffer(a, buf);
+        Audio_setSampleRate(a, format.sampleRate);
+        Audio_setChannels(a, (i32)format.channelCount);
         if (!audioWireUp(a)) {
             Memory_free(a);
             return nullptr;
@@ -488,33 +528,38 @@ Audio *Audio_load(const char *path) {
 }
 
 fn Audio_play(Audio *a) {
-    if (!a || !(*a).buffer || !(*a).node)
+    AVAudioPCMBuffer *buf = a ? Audio_buffer(a) : nullptr;
+    AVAudioPlayerNode *node = a ? Audio_node(a) : nullptr;
+    if (!a || !buf || !node)
         return;
-    AVAudioPlayerNodeBufferOptions opts = (*a).looping
+    AVAudioPlayerNodeBufferOptions opts = Audio_getLooping(a)
         ? AVAudioPlayerNodeBufferLoops
         : AVAudioPlayerNodeBufferInterrupts;
-    [(*a).node scheduleBuffer:(*a).buffer atTime:nil options:opts completionHandler:nil];
-    if (!audioNodePlay((*a).node))
+    [node scheduleBuffer:buf atTime:nil options:opts completionHandler:nil];
+    if (!audioNodePlay(node))
         return;
-    (*a).active = true;
+    Audio_setActive(a, true);
 }
 
 fn Audio_pause(Audio *a) {
-    if (a && (*a).node)
-        [(*a).node pause];
+    AVAudioPlayerNode *node = Audio_node(a);
+    if (a && node)
+        [node pause];
 }
 
 fn Audio_stop(Audio *a) {
-    if (!a || !(*a).node)
+    AVAudioPlayerNode *node = Audio_node(a);
+    if (!a || !node)
         return;
-    [(*a).node stop];
-    (*a).active = false;
+    [node stop];
+    Audio_setActive(a, false);
 }
 
 bool Audio_isPlaying(Audio *a) {
-    if (!a || !(*a).active || !(*a).node)
+    AVAudioPlayerNode *node = Audio_node(a);
+    if (!a || !Audio_active(a) || !node)
         return false;
-    return [(AVAudioPlayerNode*) (*a).node isPlaying];
+    return [(AVAudioPlayerNode*) node isPlaying];
 }
 
 ;;GETTER
@@ -541,6 +586,7 @@ fn Audio_setGain(Audio *a, f32 gain) {
     AVAudioPlayerNode_setVolume(Audio_node(a), gain);
 }
 
+;;GETTER
 f32 Audio_getGain(Audio *a) {
     return a ? (*a).gain : 0.0f;
 }
@@ -552,6 +598,7 @@ fn Audio_setPitch(Audio *a, f32 pitch) {
     AVAudioPlayerNode_setRate(Audio_node(a), pitch);
 }
 
+;;GETTER
 f32 Audio_getPitch(Audio *a) {
     return a ? (*a).pitch : 1.0f;
 }
@@ -561,26 +608,31 @@ fn Audio_setLooping(Audio *a, bool looping) {
         (*a).looping = looping;
 }
 
+;;GETTER
 bool Audio_getLooping(Audio *a) {
     return a ? (*a).looping : false;
 }
 
+;;SETTER
 fn Audio_setSampleRate(Audio *a, d64 rate) {
     if (!a || rate <= 0.0)
         return;
     (*a).rate = rate;
 }
 
+;;GETTER
 d64 Audio_getSampleRate(Audio *a) {
     return a ? (*a).rate : 0.0;
 }
 
+;;SETTER
 fn Audio_setChannels(Audio *a, i32 channels) {
     if (!a || (channels != AUDIO_MONO && channels != AUDIO_STEREO))
         return;
     (*a).channels = channels;
 }
 
+;;GETTER
 i32 Audio_getChannels(Audio *a) {
     return a ? (*a).channels : 0;
 }
@@ -589,12 +641,13 @@ fn Audio_free(Audio *a) {
     if (!a)
         return;
     @autoreleasepool {
-        if ((*a).node) {
-            [(*a).node stop];
-            [s_engine detachNode:(*a).node];
+        AVAudioPlayerNode *node = Audio_node(a);
+        if (node) {
+            [node stop];
+            [s_engine detachNode:node];
         }
     }
-    (*a).node = nullptr;
-    (*a).buffer = nullptr;
+    Audio_setNode(a, nullptr);
+    Audio_setBuffer(a, nullptr);
     Memory_free(a);
 }

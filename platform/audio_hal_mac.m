@@ -69,6 +69,31 @@ struct AudioHal {
     any user_data;
 };
 
+;;GETTER
+static inline AudioComponentInstance AudioHal_audio_unit(const AudioHal *self) { return (*self).audio_unit; }
+;;SETTER
+static inline fn AudioHal_setAudio_unit(AudioHal *self, AudioComponentInstance audio_unit) { (*self).audio_unit = audio_unit; }
+;;SETTER
+static inline fn AudioHal_setIs_running(AudioHal *self, bool is_running) { (*self).is_running = is_running; }
+;;SETTER
+static inline fn AudioHal_setSample_rate(AudioHal *self, d64 sample_rate) { (*self).sample_rate = sample_rate; }
+;;SETTER
+static inline fn AudioHal_setChannels(AudioHal *self, u32 channels) { (*self).channels = channels; }
+;;SETTER
+static inline fn AudioHal_setBuffer_frames(AudioHal *self, u32 buffer_frames) { (*self).buffer_frames = buffer_frames; }
+;;GETTER
+static inline AudioHalRenderCallback AudioHal_callback(const AudioHal *self) { return (*self).callback; }
+;;SETTER
+static inline fn AudioHal_setCallback(AudioHal *self, AudioHalRenderCallback callback) { (*self).callback = callback; }
+;;GETTER
+static inline any AudioHal_user_data(const AudioHal *self) { return (*self).user_data; }
+;;SETTER
+static inline fn AudioHal_setUser_data(AudioHal *self, any user_data) { (*self).user_data = user_data; }
+;;GETTER
+static inline UInt32 AudioBufferList_mNumberBuffers(const AudioBufferList *self) { return (*self).mNumberBuffers; }
+;;GETTER
+static inline void *AudioBufferList_mBuffers0Data(const AudioBufferList *self) { return (*self).mBuffers[0].mData; }
+
 AudioHalConfig AudioHalConfig_0() {
     AudioHalConfig cfg;
     cfg.sample_rate = 48000.0;
@@ -90,21 +115,28 @@ AudioHalConfig AudioHalConfig_2(AudioHalRenderCallback callback, any user_data) 
     return cfg;
 }
 
+;;SETTER
+static inline fn AudioHalConfig_setSample_rate(AudioHalConfig *self, d64 sample_rate) { (*self).sample_rate = sample_rate; }
+;;SETTER
+static inline fn AudioHalConfig_setChannels(AudioHalConfig *self, u32 channels) { (*self).channels = channels; }
+;;SETTER
+static inline fn AudioHalConfig_setBuffer_frames(AudioHalConfig *self, u32 buffer_frames) { (*self).buffer_frames = buffer_frames; }
+
 bool AudioHalConfig_set_sample_rate(AudioHalConfig *config, d64 sample_rate) {
     if (!config || sample_rate <= 0.0) return false;
-    (*config).sample_rate = sample_rate;
+    AudioHalConfig_setSample_rate(config, sample_rate);
     return true;
 }
 
 bool AudioHalConfig_set_channels(AudioHalConfig *config, u32 channels) {
     if (!config || channels == 0) return false;
-    (*config).channels = channels;
+    AudioHalConfig_setChannels(config, channels);
     return true;
 }
 
 bool AudioHalConfig_set_buffer_frames(AudioHalConfig *config, u32 buffer_frames) {
     if (!config || buffer_frames == 0) return false;
-    (*config).buffer_frames = buffer_frames;
+    AudioHalConfig_setBuffer_frames(config, buffer_frames);
     return true;
 }
 
@@ -121,15 +153,16 @@ static OSStatus audio_hal_render_proc(
     (discard) inBusNumber;
 
     AudioHal *hal = (AudioHal*) inRefCon;
-    if (!hal || !ioData || (*ioData).mNumberBuffers == 0) {
+    if (!hal || !ioData || AudioBufferList_mNumberBuffers(ioData) == 0) {
         return noErr;
     }
 
-    f32 *out_buf = (f32*) (*ioData).mBuffers[0].mData;
-    u32 channels = (*hal).channels;
+    f32 *out_buf = (f32*) AudioBufferList_mBuffers0Data(ioData);
+    u32 channels = AudioHal_get_channels(hal);
+    AudioHalRenderCallback cb = AudioHal_callback(hal);
 
-    if ((*hal).callback) {
-        (*hal).callback(out_buf, (u32) inNumberFrames, channels, (*hal).user_data);
+    if (cb) {
+        cb(out_buf, (u32) inNumberFrames, channels, AudioHal_user_data(hal));
     } else {
         bytes Bytes = (bytes) inNumberFrames * channels * sizeof(f32);
         memset(out_buf, 0, Bytes);
@@ -196,13 +229,13 @@ AudioHal *AudioHal_1(const AudioHalConfig *config) {
         return nullptr;
     }
 
-    (*hal).audio_unit = au;
-    (*hal).is_running = false;
-    (*hal).sample_rate = cfg.sample_rate;
-    (*hal).channels = cfg.channels;
-    (*hal).buffer_frames = cfg.buffer_frames;
-    (*hal).callback = cfg.callback;
-    (*hal).user_data = cfg.user_data;
+    AudioHal_setAudio_unit(hal, au);
+    AudioHal_setIs_running(hal, false);
+    AudioHal_setSample_rate(hal, cfg.sample_rate);
+    AudioHal_setChannels(hal, cfg.channels);
+    AudioHal_setBuffer_frames(hal, cfg.buffer_frames);
+    AudioHal_setCallback(hal, cfg.callback);
+    AudioHal_setUser_data(hal, cfg.user_data);
 
     AURenderCallbackStruct cb_struct;
     cb_struct.inputProc = audio_hal_render_proc;
@@ -233,32 +266,34 @@ AudioHal *AudioHal_1(const AudioHalConfig *config) {
 }
 
 bool AudioHal_start(AudioHal *hal) {
-    if (!hal || !(*hal).audio_unit) {
+    AudioComponentInstance au = hal ? AudioHal_audio_unit(hal) : nullptr;
+    if (!hal || !au) {
         return false;
     }
-    if ((*hal).is_running) {
+    if (AudioHal_is_running(hal)) {
         return true;
     }
 
-    OSStatus err = AudioOutputUnitStart((*hal).audio_unit);
+    OSStatus err = AudioOutputUnitStart(au);
     if (err == noErr) {
-        (*hal).is_running = true;
+        AudioHal_setIs_running(hal, true);
         return true;
     }
     return false;
 }
 
 bool AudioHal_stop(AudioHal *hal) {
-    if (!hal || !(*hal).audio_unit) {
+    AudioComponentInstance au = hal ? AudioHal_audio_unit(hal) : nullptr;
+    if (!hal || !au) {
         return false;
     }
-    if (!(*hal).is_running) {
+    if (!AudioHal_is_running(hal)) {
         return true;
     }
 
-    OSStatus err = AudioOutputUnitStop((*hal).audio_unit);
+    OSStatus err = AudioOutputUnitStop(au);
     if (err == noErr) {
-        (*hal).is_running = false;
+        AudioHal_setIs_running(hal, false);
         return true;
     }
     return false;
@@ -268,36 +303,42 @@ fn AudioHal_destroy(AudioHal *hal) {
     if (!hal) {
         return;
     }
-    if ((*hal).is_running) {
+    if (AudioHal_is_running(hal)) {
         AudioHal_stop(hal);
     }
-    if ((*hal).audio_unit) {
-        AudioUnitUninitialize((*hal).audio_unit);
-        AudioComponentInstanceDispose((*hal).audio_unit);
-        (*hal).audio_unit = nullptr;
+    AudioComponentInstance au = AudioHal_audio_unit(hal);
+    if (au) {
+        AudioUnitUninitialize(au);
+        AudioComponentInstanceDispose(au);
+        AudioHal_setAudio_unit(hal, nullptr);
     }
     free(hal);
 }
 
+;;GETTER
 bool AudioHal_is_running(const AudioHal *hal) {
     return hal ? (*hal).is_running : false;
 }
 
+;;GETTER
 d64 AudioHal_get_sample_rate(const AudioHal *hal) {
     return hal ? (*hal).sample_rate : 0.0;
 }
 
+;;GETTER
 u32 AudioHal_get_channels(const AudioHal *hal) {
     return hal ? (*hal).channels : 0;
 }
 
+;;GETTER
 u32 AudioHal_get_buffer_frames(const AudioHal *hal) {
     return hal ? (*hal).buffer_frames : 0;
 }
 
 d64 AudioHal_get_latency_ms(const AudioHal *hal) {
-    if (!hal || (*hal).sample_rate <= 0.0) {
+    d64 sr = AudioHal_get_sample_rate(hal);
+    if (!hal || sr <= 0.0) {
         return 0.0;
     }
-    return (1000.0 * (d64) (*hal).buffer_frames) / (*hal).sample_rate;
+    return (1000.0 * (d64) AudioHal_get_buffer_frames(hal)) / sr;
 }

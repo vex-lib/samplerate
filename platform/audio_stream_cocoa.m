@@ -69,6 +69,43 @@ typedef struct AudioStream {
     any userData;
 } AudioStream;
 
+;;GETTER
+static inline AudioComponentInstance AudioStream_unit(const AudioStream *self) { return (*self).unit; }
+;;SETTER
+static inline fn AudioStream_setUnit(AudioStream *self, AudioComponentInstance unit) { (*self).unit = unit; }
+;;SETTER
+static inline fn AudioStream_setRunning(AudioStream *self, bool running) { (*self).running = running; }
+;;SETTER
+static inline fn AudioStream_setSampleRate(AudioStream *self, d64 sampleRate) { (*self).sampleRate = sampleRate; }
+;;SETTER
+static inline fn AudioStream_setChannels(AudioStream *self, u32 channels) { (*self).channels = channels; }
+;;SETTER
+static inline fn AudioStream_setFramesPerBlock(AudioStream *self, u32 framesPerBlock) { (*self).framesPerBlock = framesPerBlock; }
+;;GETTER
+static inline AudioRenderCallback AudioStream_callback(const AudioStream *self) { return (*self).callback; }
+;;SETTER
+static inline fn AudioStream_setCallback(AudioStream *self, AudioRenderCallback callback) { (*self).callback = callback; }
+;;GETTER
+static inline any AudioStream_userData(const AudioStream *self) { return (*self).userData; }
+;;SETTER
+static inline fn AudioStream_setUserData(AudioStream *self, any userData) { (*self).userData = userData; }
+
+;;GETTER
+static inline d64 AudioStreamConfig_sampleRate(const AudioStreamConfig *self) { return (*self).sampleRate; }
+;;GETTER
+static inline u32 AudioStreamConfig_channels(const AudioStreamConfig *self) { return (*self).channels; }
+;;GETTER
+static inline u32 AudioStreamConfig_framesPerBlock(const AudioStreamConfig *self) { return (*self).framesPerBlock; }
+;;GETTER
+static inline AudioRenderCallback AudioStreamConfig_callback(const AudioStreamConfig *self) { return (*self).callback; }
+;;GETTER
+static inline any AudioStreamConfig_userData(const AudioStreamConfig *self) { return (*self).userData; }
+
+;;GETTER
+static inline UInt32 AudioBufferList_mNumberBuffers(const AudioBufferList *self) { return (*self).mNumberBuffers; }
+;;GETTER
+static inline void *AudioBufferList_mBuffers0Data(const AudioBufferList *self) { return (*self).mBuffers[0].mData; }
+
 static OSStatus audioStreamRender(any inRefCon,
                                   AudioUnitRenderActionFlags *ioActionFlags,
                                   const AudioTimeStamp *inTimeStamp,
@@ -80,14 +117,15 @@ static OSStatus audioStreamRender(any inRefCon,
     (discard) inBusNumber;
 
     AudioStream *self = (AudioStream*) inRefCon;
-    if (self == nullptr || ioData == nullptr || (*ioData).mNumberBuffers == 0u)
+    if (self == nullptr || ioData == nullptr || AudioBufferList_mNumberBuffers(ioData) == 0u)
         return noErr;
-    f32 *out = (f32*) (*ioData).mBuffers[0].mData;
+    f32 *out = (f32*) AudioBufferList_mBuffers0Data(ioData);
     if (out == nullptr)
         return noErr;
-    u32 channels = (*self).channels;
-    if ((*self).callback != nullptr)
-        (*self).callback(out, (u32) inNumberFrames, channels, (*self).userData);
+    u32 channels = AudioStream_getChannels(self);
+    AudioRenderCallback cb = AudioStream_callback(self);
+    if (cb != nullptr)
+        cb(out, (u32) inNumberFrames, channels, AudioStream_userData(self));
     else
         memset(out, 0, (bytes) inNumberFrames * (bytes) channels * sizeof(f32));
     return noErr;
@@ -97,16 +135,16 @@ AudioStream *AudioStream_1(const AudioStreamConfig *config) {
     AudioStream *self = (AudioStream*) AudioMemory_alloc(TYPE_AUDIO_STREAM, sizeof(AudioStream));
     if (self == nullptr)
         return nullptr;
-    (*self).unit = nullptr;
-    (*self).running = false;
-    (*self).sampleRate = (config && (*config).sampleRate > 0.0)
-        ? (*config).sampleRate : AUDIO_STREAM_DEFAULT_RATE_HZ;
-    (*self).channels = (config && (*config).channels > 0u)
-        ? (*config).channels : AUDIO_STREAM_DEFAULT_CHANNELS;
-    (*self).framesPerBlock = (config && (*config).framesPerBlock > 0u)
-        ? (*config).framesPerBlock : 0u;
-    (*self).callback = config ? (*config).callback : nullptr;
-    (*self).userData = config ? (*config).userData : nullptr;
+    AudioStream_setUnit(self, nullptr);
+    AudioStream_setRunning(self, false);
+    AudioStream_setSampleRate(self, (config && AudioStreamConfig_sampleRate(config) > 0.0)
+        ? AudioStreamConfig_sampleRate(config) : AUDIO_STREAM_DEFAULT_RATE_HZ);
+    AudioStream_setChannels(self, (config && AudioStreamConfig_channels(config) > 0u)
+        ? AudioStreamConfig_channels(config) : AUDIO_STREAM_DEFAULT_CHANNELS);
+    AudioStream_setFramesPerBlock(self, (config && AudioStreamConfig_framesPerBlock(config) > 0u)
+        ? AudioStreamConfig_framesPerBlock(config) : 0u);
+    AudioStream_setCallback(self, config ? AudioStreamConfig_callback(config) : nullptr);
+    AudioStream_setUserData(self, config ? AudioStreamConfig_userData(config) : nullptr);
     return self;
 }
 
@@ -119,7 +157,7 @@ bool AudioStream_open(AudioStream *self) {
         THROW("AudioStream_open: null self");
         return false;
     }
-    if ((*self).unit != nullptr)
+    if (AudioStream_unit(self) != nullptr)
         return true;
 
     AudioComponentDescription desc;
@@ -144,13 +182,14 @@ bool AudioStream_open(AudioStream *self) {
 
     AudioStreamBasicDescription asbd;
     memset(&asbd, 0, sizeof(asbd));
-    asbd.mSampleRate = (*self).sampleRate;
+    u32 channels = AudioStream_getChannels(self);
+    asbd.mSampleRate = AudioStream_getSampleRate(self);
     asbd.mFormatID = kAudioFormatLinearPCM;
     asbd.mFormatFlags = kAudioFormatFlagIsFloat | kAudioFormatFlagIsPacked;
-    asbd.mBytesPerPacket = (*self).channels * sizeof(f32);
+    asbd.mBytesPerPacket = channels * sizeof(f32);
     asbd.mFramesPerPacket = 1;
-    asbd.mBytesPerFrame = (*self).channels * sizeof(f32);
-    asbd.mChannelsPerFrame = (*self).channels;
+    asbd.mBytesPerFrame = channels * sizeof(f32);
+    asbd.mChannelsPerFrame = channels;
     asbd.mBitsPerChannel = 32;
 
     err = AudioUnitSetProperty(au, kAudioUnitProperty_StreamFormat,
@@ -179,40 +218,43 @@ bool AudioStream_open(AudioStream *self) {
         return false;
     }
 
-    (*self).unit = au;
+    AudioStream_setUnit(self, au);
     return true;
 }
 
 bool AudioStream_start(AudioStream *self) {
-    if (self == nullptr || (*self).unit == nullptr) {
+    AudioComponentInstance unit = self ? AudioStream_unit(self) : nullptr;
+    if (self == nullptr || unit == nullptr) {
         THROW("AudioStream_start: stream not open");
         return false;
     }
-    if ((*self).running)
+    if (AudioStream_isRunning(self))
         return true;
-    OSStatus err = AudioOutputUnitStart((*self).unit);
+    OSStatus err = AudioOutputUnitStart(unit);
     if (err != noErr) {
         THROW("AudioStream_start: output start failed");
         return false;
     }
-    (*self).running = true;
+    AudioStream_setRunning(self, true);
     return true;
 }
 
 bool AudioStream_stop(AudioStream *self) {
-    if (self == nullptr || (*self).unit == nullptr)
+    AudioComponentInstance unit = self ? AudioStream_unit(self) : nullptr;
+    if (self == nullptr || unit == nullptr)
         return false;
-    if (!(*self).running)
+    if (!AudioStream_isRunning(self))
         return true;
-    OSStatus err = AudioOutputUnitStop((*self).unit);
+    OSStatus err = AudioOutputUnitStop(unit);
     if (err != noErr) {
         THROW("AudioStream_stop: output stop failed");
         return false;
     }
-    (*self).running = false;
+    AudioStream_setRunning(self, false);
     return true;
 }
 
+;;GETTER
 bool AudioStream_isRunning(const AudioStream *self) {
     return self ? (*self).running : false;
 }
@@ -220,32 +262,38 @@ bool AudioStream_isRunning(const AudioStream *self) {
 fn AudioStream_free(AudioStream *self) {
     if (self == nullptr)
         return;
-    if ((*self).running)
+    if (AudioStream_isRunning(self))
         AudioStream_stop(self);
-    if ((*self).unit != nullptr) {
-        AudioUnitUninitialize((*self).unit);
-        AudioComponentInstanceDispose((*self).unit);
-        (*self).unit = nullptr;
+    AudioComponentInstance unit = AudioStream_unit(self);
+    if (unit != nullptr) {
+        AudioUnitUninitialize(unit);
+        AudioComponentInstanceDispose(unit);
+        AudioStream_setUnit(self, nullptr);
     }
     AudioMemory_free(self);
 }
 
+;;GETTER
 d64 AudioStream_getSampleRate(const AudioStream *self) {
     return self ? (*self).sampleRate : 0.0;
 }
 
+;;GETTER
 u32 AudioStream_getChannels(const AudioStream *self) {
     return self ? (*self).channels : 0u;
 }
 
+;;GETTER
 u32 AudioStream_getFramesPerBlock(const AudioStream *self) {
     return self ? (*self).framesPerBlock : 0u;
 }
 
 d64 AudioStream_getLatencyMs(const AudioStream *self) {
-    if (self == nullptr || (*self).sampleRate <= 0.0 || (*self).framesPerBlock == 0u)
+    d64 sampleRate = AudioStream_getSampleRate(self);
+    u32 framesPerBlock = AudioStream_getFramesPerBlock(self);
+    if (self == nullptr || sampleRate <= 0.0 || framesPerBlock == 0u)
         return 0.0;
-    return (1000.0 * (d64) (*self).framesPerBlock) / (*self).sampleRate;
+    return (1000.0 * (d64) framesPerBlock) / sampleRate;
 }
 
 fn AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *outTruncated) {
@@ -263,8 +311,8 @@ fn AudioStream_toString(const AudioStream *self, char *dest, bytes cap, bool *ou
         return;
     }
     i32 n = snprintf(dest, cap, "AudioStream(%s, %.1f Hz, %u ch, %.2f ms)",
-                     (*self).running ? "running" : "stopped",
-                     (*self).sampleRate, (*self).channels,
+                     AudioStream_isRunning(self) ? "running" : "stopped",
+                     AudioStream_getSampleRate(self), AudioStream_getChannels(self),
                      AudioStream_getLatencyMs(self));
     if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
@@ -286,10 +334,11 @@ fn AudioStream_toStringStruct(const AudioStream *self, char *dest, bytes cap, bo
     }
     i32 n = snprintf(dest, cap,
                      "AudioStream { unit: %s, running: %s, sampleRate: %.1f, channels: %u, framesPerBlock: %u, callback: %s }",
-                     (*self).unit ? "open" : "closed",
-                     (*self).running ? "true" : "false",
-                     (*self).sampleRate, (*self).channels, (*self).framesPerBlock,
-                     (*self).callback ? "set" : "none");
+                     AudioStream_unit(self) ? "open" : "closed",
+                     AudioStream_isRunning(self) ? "true" : "false",
+                     AudioStream_getSampleRate(self), AudioStream_getChannels(self),
+                     AudioStream_getFramesPerBlock(self),
+                     AudioStream_callback(self) ? "set" : "none");
     if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }

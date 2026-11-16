@@ -59,6 +59,15 @@ typedef struct AudioBuffer {
     d64 sampleRate;
 } AudioBuffer;
 
+;;SETTER
+static inline fn AudioBuffer_setData(AudioBuffer *self, f32 *data) { (*self).data = data; }
+;;SETTER
+static inline fn AudioBuffer_setFrames(AudioBuffer *self, u32 frames) { (*self).frames = frames; }
+;;SETTER
+static inline fn AudioBuffer_setCapacity(AudioBuffer *self, u32 capacity) { (*self).capacity = capacity; }
+;;SETTER
+static inline fn AudioBuffer_setChannelsRaw(AudioBuffer *self, u32 channels) { (*self).channels = channels; }
+
 // frames * channels * sizeof(f32), with explicit overflow refusal.
 static bool audioBufferBytes(u32 frames, u32 channels, bytes *outBytes) {
     if (outBytes == nullptr || frames == 0u || channels == 0u)
@@ -78,11 +87,11 @@ static AudioBuffer *audioBufferAllocControl() {
     AudioBuffer *self = (AudioBuffer*) AudioMemory_alloc(TYPE_AUDIO_BUFFER, sizeof(AudioBuffer));
     if (self == nullptr)
         return nullptr;
-    (*self).data = nullptr;
-    (*self).frames = 0u;
-    (*self).capacity = 0u;
-    (*self).channels = AUDIO_CHANNELS_DEFAULT;
-    (*self).sampleRate = AUDIO_RATE_DEFAULT;
+    AudioBuffer_setData(self, nullptr);
+    AudioBuffer_setFrames(self, 0u);
+    AudioBuffer_setCapacity(self, 0u);
+    AudioBuffer_setChannelsRaw(self, AUDIO_CHANNELS_DEFAULT);
+    AudioBuffer_setSampleRate(self, AUDIO_RATE_DEFAULT);
     return self;
 }
 
@@ -91,19 +100,22 @@ static AudioBuffer *audioBufferAllocControl() {
 // failure.
 static bool audioBufferGrowTo(AudioBuffer *self, u32 frames) {
     bytes byteCount = 0u;
-    if (!audioBufferBytes(frames, (*self).channels, &byteCount))
+    u32 channels = AudioBuffer_getChannels(self);
+    if (!audioBufferBytes(frames, channels, &byteCount))
         return false;
     f32 *block = (f32*) AudioMemory_alloc(TYPE_AUDIO_BUFFER, byteCount);
     if (block == nullptr)
         return false;
-    u32 copyFrames = (*self).frames < frames ? (*self).frames : frames;
-    if ((*self).data != nullptr && copyFrames > 0u) {
-        bytes copyFloats = (bytes) copyFrames * (bytes) (*self).channels;
-        memcpy(block, (*self).data, copyFloats * sizeof(f32));
+    u32 curFrames = AudioBuffer_getFrames(self);
+    u32 copyFrames = curFrames < frames ? curFrames : frames;
+    f32 *oldData = AudioBuffer_getData(self);
+    if (oldData != nullptr && copyFrames > 0u) {
+        bytes copyFloats = (bytes) copyFrames * (bytes) channels;
+        memcpy(block, oldData, copyFloats * sizeof(f32));
     }
-    AudioMemory_free((*self).data);
-    (*self).data = block;
-    (*self).capacity = frames;
+    AudioMemory_free(oldData);
+    AudioBuffer_setData(self, block);
+    AudioBuffer_setCapacity(self, frames);
     return true;
 }
 
@@ -115,7 +127,7 @@ AudioBuffer *AudioBuffer_0() {
         AudioMemory_free(self);
         return nullptr;
     }
-    (*self).frames = AUDIO_BLOCK_FRAMES_DEFAULT;
+    AudioBuffer_setFrames(self, AUDIO_BLOCK_FRAMES_DEFAULT);
     return self;
 }
 
@@ -127,7 +139,7 @@ AudioBuffer *AudioBuffer_1(u32 frames) {
         AudioMemory_free(self);
         return nullptr;
     }
-    (*self).frames = frames;
+    AudioBuffer_setFrames(self, frames);
     return self;
 }
 
@@ -141,15 +153,15 @@ AudioBuffer *AudioBuffer_2(u32 frames, u32 channels) {
 AudioBuffer *AudioBuffer_3(u32 frames, u32 channels, d64 sampleRate) {
     AudioBuffer *self = AudioBuffer_2(frames, channels);
     if (self != nullptr && sampleRate >= AUDIO_RATE_MIN && sampleRate <= AUDIO_RATE_MAX)
-        (*self).sampleRate = sampleRate;
+        AudioBuffer_setSampleRate(self, sampleRate);
     return self;
 }
 
 fn AudioBuffer_free(AudioBuffer *self) {
     if (self == nullptr)
         return;
-    AudioMemory_free((*self).data);
-    (*self).data = nullptr;
+    AudioMemory_free(AudioBuffer_getData(self));
+    AudioBuffer_setData(self, nullptr);
     AudioMemory_free(self);
 }
 
@@ -159,50 +171,57 @@ bool AudioBuffer_resize(AudioBuffer *self, u32 frames) {
         return false;
     }
     if (frames == 0u) {
-        (*self).frames = 0u;
+        AudioBuffer_setFrames(self, 0u);
         return true;
     }
     if (frames > AUDIO_BUFFER_FRAMES_MAX) {
         THROW("AudioBuffer_resize: frames out of range");
         return false;
     }
-    if (frames > (*self).capacity) {
+    if (frames > AudioBuffer_getCapacity(self)) {
         if (!audioBufferGrowTo(self, frames)) {
             THROW("AudioBuffer_resize: growth failed");
             return false;
         }
     }
-    (*self).frames = frames;
+    AudioBuffer_setFrames(self, frames);
     return true;
 }
 
 fn AudioBuffer_clear(AudioBuffer *self) {
-    if (self == nullptr || (*self).data == nullptr)
+    f32 *data = AudioBuffer_getData(self);
+    if (self == nullptr || data == nullptr)
         return;
-    bytes f32s = (bytes) (*self).frames * (bytes) (*self).channels;
-    memset((*self).data, 0, f32s * sizeof(f32));
+    bytes f32s = (bytes) AudioBuffer_getFrames(self) * (bytes) AudioBuffer_getChannels(self);
+    memset(data, 0, f32s * sizeof(f32));
 }
 
+;;GETTER
 const f32 *AudioBuffer_getConstData(const AudioBuffer *self) {
     return self ? (*self).data : nullptr;
 }
 
+;;GETTER
 f32 *AudioBuffer_getData(AudioBuffer *self) {
     return self ? (*self).data : nullptr;
 }
 
+;;GETTER
 u32 AudioBuffer_getFrames(const AudioBuffer *self) {
     return self ? (*self).frames : 0u;
 }
 
+;;GETTER
 u32 AudioBuffer_getCapacity(const AudioBuffer *self) {
     return self ? (*self).capacity : 0u;
 }
 
+;;GETTER
 u32 AudioBuffer_getChannels(const AudioBuffer *self) {
     return self ? (*self).channels : 0u;
 }
 
+;;GETTER
 d64 AudioBuffer_getSampleRate(const AudioBuffer *self) {
     return self ? (*self).sampleRate : 0.0;
 }
@@ -216,13 +235,15 @@ fn AudioBuffer_setChannels(AudioBuffer *self, u32 channels) {
         THROW("AudioBuffer_setChannels: channels out of range");
         return;
     }
-    u32 oldChannels = (*self).channels;
+    u32 oldChannels = AudioBuffer_getChannels(self);
     if (channels == oldChannels)
         return;
     f32 *block = nullptr;
-    if ((*self).capacity > 0u) {
+    u32 capacity = AudioBuffer_getCapacity(self);
+    f32 *oldData = AudioBuffer_getData(self);
+    if (capacity > 0u) {
         bytes byteCount = 0u;
-        if (!audioBufferBytes((*self).capacity, channels, &byteCount)) {
+        if (!audioBufferBytes(capacity, channels, &byteCount)) {
             THROW("AudioBuffer_setChannels: overflow");
             return;
         }
@@ -231,19 +252,20 @@ fn AudioBuffer_setChannels(AudioBuffer *self, u32 channels) {
             THROW("AudioBuffer_setChannels: allocation failed");
             return;
         }
-        if ((*self).data != nullptr && (*self).frames > 0u) {
+        u32 frames = AudioBuffer_getFrames(self);
+        if (oldData != nullptr && frames > 0u) {
             u32 copyChannels = oldChannels < channels ? oldChannels : channels;
-            for (u32 f = 0u; f < (*self).frames; ++f) {
+            for (u32 f = 0u; f < frames; ++f) {
                 f32 *dst = &block[(bytes) f * channels];
-                const f32 *src = &(*self).data[(bytes) f * oldChannels];
+                const f32 *src = &oldData[(bytes) f * oldChannels];
                 for (u32 c = 0u; c < copyChannels; ++c)
                     dst[c] = src[c];
             }
         }
     }
-    AudioMemory_free((*self).data);
-    (*self).data = block;
-    (*self).channels = channels;
+    AudioMemory_free(oldData);
+    AudioBuffer_setData(self, block);
+    AudioBuffer_setChannelsRaw(self, channels);
 }
 
 fn AudioBuffer_setSampleRate(AudioBuffer *self, d64 sampleRate) {
@@ -261,13 +283,17 @@ fn AudioBuffer_setSampleRate(AudioBuffer *self, d64 sampleRate) {
 bool AudioBuffer_isValid(const AudioBuffer *self) {
     if (self == nullptr)
         return false;
-    if ((*self).data == nullptr || (*self).capacity == 0u)
+    u32 capacity = AudioBuffer_getCapacity(self);
+    if (AudioBuffer_getConstData(self) == nullptr || capacity == 0u)
         return false;
-    if ((*self).channels < 1u || (*self).channels > AUDIO_CHANNELS_MAX)
+    u32 channels = AudioBuffer_getChannels(self);
+    if (channels < 1u || channels > AUDIO_CHANNELS_MAX)
         return false;
-    if ((*self).frames > (*self).capacity || (*self).frames > AUDIO_BUFFER_FRAMES_MAX)
+    u32 frames = AudioBuffer_getFrames(self);
+    if (frames > capacity || frames > AUDIO_BUFFER_FRAMES_MAX)
         return false;
-    return (*self).sampleRate >= AUDIO_RATE_MIN && (*self).sampleRate <= AUDIO_RATE_MAX;
+    d64 sampleRate = AudioBuffer_getSampleRate(self);
+    return sampleRate >= AUDIO_RATE_MIN && sampleRate <= AUDIO_RATE_MAX;
 }
 
 fn AudioBuffer_toString(const AudioBuffer *self, char *dest, bytes cap, bool *outTruncated) {
@@ -285,7 +311,8 @@ fn AudioBuffer_toString(const AudioBuffer *self, char *dest, bytes cap, bool *ou
         return;
     }
     i32 n = snprintf(dest, cap, "AudioBuffer(%u/%u frames, %u ch, %.1f Hz)",
-                     (*self).frames, (*self).capacity, (*self).channels, (*self).sampleRate);
+                     AudioBuffer_getFrames(self), AudioBuffer_getCapacity(self),
+                     AudioBuffer_getChannels(self), AudioBuffer_getSampleRate(self));
     if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }
@@ -306,8 +333,8 @@ fn AudioBuffer_toStringStruct(const AudioBuffer *self, char *dest, bytes cap, bo
     }
     i32 n = snprintf(dest, cap,
                      "AudioBuffer { data: %p, frames: %u, capacity: %u, channels: %u, sampleRate: %.1f }",
-                     (const_any) (*self).data, (*self).frames, (*self).capacity,
-                     (*self).channels, (*self).sampleRate);
+                     (const_any) AudioBuffer_getConstData(self), AudioBuffer_getFrames(self), AudioBuffer_getCapacity(self),
+                     AudioBuffer_getChannels(self), AudioBuffer_getSampleRate(self));
     if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }

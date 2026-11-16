@@ -87,21 +87,28 @@ AudioHalConfig AudioHalConfig_2(AudioHalRenderCallback callback, any user_data) 
     return cfg;
 }
 
+;;SETTER
+static inline fn AudioHalConfig_setSample_rate(AudioHalConfig *self, d64 sample_rate) { (*self).sample_rate = sample_rate; }
+;;SETTER
+static inline fn AudioHalConfig_setChannels(AudioHalConfig *self, u32 channels) { (*self).channels = channels; }
+;;SETTER
+static inline fn AudioHalConfig_setBuffer_frames(AudioHalConfig *self, u32 buffer_frames) { (*self).buffer_frames = buffer_frames; }
+
 bool AudioHalConfig_set_sample_rate(AudioHalConfig *config, d64 sample_rate) {
     if (!config || sample_rate <= 0.0) return false;
-    (*config).sample_rate = sample_rate;
+    AudioHalConfig_setSample_rate(config, sample_rate);
     return true;
 }
 
 bool AudioHalConfig_set_channels(AudioHalConfig *config, u32 channels) {
     if (!config || channels == 0) return false;
-    (*config).channels = channels;
+    AudioHalConfig_setChannels(config, channels);
     return true;
 }
 
 bool AudioHalConfig_set_buffer_frames(AudioHalConfig *config, u32 buffer_frames) {
     if (!config || buffer_frames == 0) return false;
-    (*config).buffer_frames = buffer_frames;
+    AudioHalConfig_setBuffer_frames(config, buffer_frames);
     return true;
 }
 

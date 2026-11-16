@@ -61,10 +61,10 @@ AudioFormat *AudioFormat_0() {
     AudioFormat *self = audioFormatAlloc();
     if (self == nullptr)
         return nullptr;
-    (*self).sampleRate = AUDIO_RATE_DEFAULT;
-    (*self).channels = AUDIO_CHANNELS_DEFAULT;
-    (*self).framesPerBlock = AUDIO_BLOCK_FRAMES_DEFAULT;
-    (*self).sampleType = AUDIO_SAMPLE_TYPE_DEFAULT;
+    AudioFormat_setSampleRate(self, AUDIO_RATE_DEFAULT);
+    AudioFormat_setChannels(self, AUDIO_CHANNELS_DEFAULT);
+    AudioFormat_setFramesPerBlock(self, AUDIO_BLOCK_FRAMES_DEFAULT);
+    AudioFormat_setSampleType(self, AUDIO_SAMPLE_TYPE_DEFAULT);
     return self;
 }
 
@@ -135,18 +135,22 @@ fn AudioFormat_setSampleType(AudioFormat *self, u32 sampleType) {
     (*self).sampleType = sampleType;
 }
 
+;;GETTER
 d64 AudioFormat_getSampleRate(const AudioFormat *self) {
     return self ? (*self).sampleRate : 0.0;
 }
 
+;;GETTER
 u32 AudioFormat_getChannels(const AudioFormat *self) {
     return self ? (*self).channels : 0u;
 }
 
+;;GETTER
 u32 AudioFormat_getFramesPerBlock(const AudioFormat *self) {
     return self ? (*self).framesPerBlock : 0u;
 }
 
+;;GETTER
 u32 AudioFormat_getSampleType(const AudioFormat *self) {
     return self ? (*self).sampleType : AUDIO_SAMPLE_UNKNOWN;
 }
@@ -154,11 +158,14 @@ u32 AudioFormat_getSampleType(const AudioFormat *self) {
 bool AudioFormat_isValid(const AudioFormat *self) {
     if (self == nullptr)
         return false;
-    return (*self).sampleRate >= AUDIO_RATE_MIN &&
-           (*self).sampleRate <= AUDIO_RATE_MAX &&
-           (*self).channels >= 1u && (*self).channels <= AUDIO_CHANNELS_MAX &&
-           (*self).framesPerBlock >= 1u && (*self).framesPerBlock <= AUDIO_BLOCK_FRAMES_MAX &&
-           (*self).sampleType != AUDIO_SAMPLE_UNKNOWN;
+    d64 sampleRate = AudioFormat_getSampleRate(self);
+    u32 channels = AudioFormat_getChannels(self);
+    u32 framesPerBlock = AudioFormat_getFramesPerBlock(self);
+    return sampleRate >= AUDIO_RATE_MIN &&
+           sampleRate <= AUDIO_RATE_MAX &&
+           channels >= 1u && channels <= AUDIO_CHANNELS_MAX &&
+           framesPerBlock >= 1u && framesPerBlock <= AUDIO_BLOCK_FRAMES_MAX &&
+           AudioFormat_getSampleType(self) != AUDIO_SAMPLE_UNKNOWN;
 }
 
 fn AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *outTruncated) {
@@ -176,8 +183,8 @@ fn AudioFormat_toString(const AudioFormat *self, char *dest, bytes cap, bool *ou
         return;
     }
     i32 n = snprintf(dest, cap, "AudioFormat(%.1f Hz, %u ch, %u frames, type=%u)",
-                     (*self).sampleRate, (*self).channels,
-                     (*self).framesPerBlock, (*self).sampleType);
+                     AudioFormat_getSampleRate(self), AudioFormat_getChannels(self),
+                     AudioFormat_getFramesPerBlock(self), AudioFormat_getSampleType(self));
     if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }
@@ -198,8 +205,8 @@ fn AudioFormat_toStringStruct(const AudioFormat *self, char *dest, bytes cap, bo
     }
     i32 n = snprintf(dest, cap,
                      "AudioFormat { sampleRate: %.1f, channels: %u, framesPerBlock: %u, sampleType: %u }",
-                     (*self).sampleRate, (*self).channels,
-                     (*self).framesPerBlock, (*self).sampleType);
+                     AudioFormat_getSampleRate(self), AudioFormat_getChannels(self),
+                     AudioFormat_getFramesPerBlock(self), AudioFormat_getSampleType(self));
     if (outTruncated && n >= 0 && (bytes) n >= cap)
         *outTruncated = true;
 }
