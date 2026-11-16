@@ -2,16 +2,16 @@
 
 ## Constitution Link
 
-gist.md (`../../metadata/gists/preferences/gist.md`) is the compressed law list; all universal laws bind this repository. Read one on demand: `./tools/prefs law "<title>"`. Universal laws are inherited, never restated.
+gist.md (`../../../metadata/gists/preferences/gist.md`) is the compressed law list; all universal laws bind this repository. Read one on demand: `./tools/prefs law "<title>"`. Universal laws are inherited, never restated.
 
-Tier: core (R3 Audio Driver). Owns: platform-agnostic audio surface, macOS AVFoundation backend, portable stub. Borrows: Vexspoke R2 CPU computation/synchronization/behavior, Relational Engine memory/storage/native C search. R5 DAW `impedance` consumes samplerate.
+Tier: core (Audio Driver). Owns: platform-agnostic audio surface, macOS AVFoundation backend, portable stub. Borrows: Vexspoke CPU computation/synchronization/behavior, Relational Engine memory/storage/native C search. `app` DAW `impedance` consumes samplerate.
 
 ## Exclusive Laws
 
 | Law Title | Scope | Enforcement |
-| **Zero-Allocation Audio Callback Law** | R3 Audio Driver | Mandatory for `samplerate` |
-| **Lockless Ring Transport Law** | R3 Audio Driver | Mandatory for `samplerate` |
-| **Audio Ownership Law** | R3 Audio Driver | Mandatory for `samplerate` |
+| **Zero-Allocation Audio Callback Law** | core Audio Driver | Mandatory for `samplerate` |
+| **Lockless Ring Transport Law** | core Audio Driver | Mandatory for `samplerate` |
+| **Audio Ownership Law** | core Audio Driver | Mandatory for `samplerate` |
 
 ### Zero-Allocation Audio Callback Law
 
@@ -28,7 +28,7 @@ Tier: core (R3 Audio Driver). Owns: platform-agnostic audio surface, macOS AVFou
 ### Audio Ownership Law
 
 * Samplerate owns the platform-agnostic audio surface (`audio/audio.h`, `audio/audio_hal.h`) plus the macOS AVFoundation backend (`platform/audio_cocoa.m`, `platform/audio_hal_mac.m`) and the portable stub (`audio/audio_stub.c`, `audio/audio_hal_stub.c`).
-* The R5 DAW `impedance` consumes samplerate's HAL, never vexspoke's.
+* The `app` DAW `impedance` consumes samplerate's HAL, never vexspoke's.
 
 ## Repo-Local Extensions
 
